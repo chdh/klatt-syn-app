@@ -55,8 +55,13 @@ function setSignalViewer() {
 function synthesize() {
    signalSamples = undefined;
    const uiParms = getUiParms();
+   const agc = isNaN(uiParms.fParmsA[0].gainDb);           // automatic gain control
+   if (agc) {
+      uiParms.fParmsA[0].gainDb = 0; }
    signalSamples = KlattSyn.generateSound(uiParms.mParms, uiParms.fParmsA);
    signalSampleRate = uiParms.mParms.sampleRate;
+   if (agc) {
+      Utils.adjustSignalGain(signalSamples); }
    Utils.fadeAudioSignalInPlace(signalSamples, uiParms.fadingDuration * signalSampleRate, WindowFunctions.hannWindow);
    setSignalViewer(); }
 
@@ -82,7 +87,7 @@ const defaultFrameParms: KlattSyn.FrameParms = {
    openPhaseRatio:           0.7,
    breathinessDb:            -25,
    tiltDb:                   0,
-   gainDb:                   -10,
+   gainDb:                   NaN,
    nasalFormantFreq:         NaN,
    nasalFormantBw:           NaN,
    oralFormantFreq:          [520, 1006, 2831, 3168, 4135, 5020],
@@ -279,7 +284,7 @@ function encodeUrlParms (uiParms: UiParms) : string {
    UrlUtils.setNum(usp, "openPhaseRatio",  fParms.openPhaseRatio, fParms2.openPhaseRatio);
    UrlUtils.setNum(usp, "breathinessDb",   fParms.breathinessDb,  fParms2.breathinessDb);
    UrlUtils.setNum(usp, "tiltDb",          fParms.tiltDb,         fParms2.tiltDb);
-   UrlUtils.setNum(usp, "gainDb",          fParms.gainDb,         fParms2.gainDb);
+   UrlUtils.setNum(usp, "gainDb",          fParms.gainDb);
 
    // Resonators:
    setUrlResonator(usp, "nasalFormant",         fParms.nasalFormantFreq,     fParms.nasalFormantBw,     fParms.nasalFormantDb);
@@ -335,7 +340,7 @@ function decodeUrlParms (urlParmsString: string) : UiParms {
    fParms.openPhaseRatio        = UrlUtils.getNum(usp, "openPhaseRatio", fParms2.openPhaseRatio);
    fParms.breathinessDb         = UrlUtils.getNum(usp, "breathinessDb",  fParms2.breathinessDb);
    fParms.tiltDb                = UrlUtils.getNum(usp, "tiltDb",         fParms2.tiltDb);
-   fParms.gainDb                = UrlUtils.getNum(usp, "gainDb",         fParms2.gainDb);
+   fParms.gainDb                = UrlUtils.getNum(usp, "gainDb");
 
    // Resonators:
    const nasalFormatRes         = getUrlResonator(usp,"nasalFormant");

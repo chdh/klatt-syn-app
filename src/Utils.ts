@@ -32,3 +32,18 @@ export function fadeAudioSignalInPlace (samples: Float64Array, fadeMargin: numbe
       const w = windowFunction(i / d);
       samples[i] *= w;
       samples[samples.length - 1 - i] *= w; }}
+
+export function adjustSignalGain (samples: Float64Array, targetLevel = 0.9) {
+   const n = samples.length;
+   if (!n) {
+      return; }
+   let maxAbs = Math.abs(samples[0]);
+   for (let i = 1; i < n; i++) {
+      const abs = Math.abs(samples[i]);
+      if (abs > maxAbs) {
+         maxAbs = abs; }}
+   if (!maxAbs) {
+      return; }
+   const r = targetLevel / maxAbs;
+   for (let i = 0; i < n; i++) {
+      samples[i] *= r; }}

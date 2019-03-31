@@ -39,8 +39,8 @@
   <input class="width1" id="breathinessDb" type="number" step="any" required>
   <label class="width1g gap1" for="tiltDb" title="Spectral tilt in dB. A positive number that specifies the attenuation at 3 kHz. 0 = no tilt.">Tilt [dB]:</label>
   <input class="width1" id="tiltDb" type="number" step="any" min="0" required>
-  <label class="width1g gap1" for="gainDb" title="Overall gain (output gain) in dB. Positive to amplify or negative to attenuate the signal.">Gain [dB]:</label>
-  <input class="width1" id="gainDb" type="number" step="any" required>
+  <label class="width1g gap1" for="gainDb" title="Overall gain (output gain) in dB. Positive to amplify or negative to attenuate the signal, empty for automatic gain.">Gain [dB]:</label>
+  <input class="width1" id="gainDb" type="number" step="any" placeholder="(auto)">
  </div>
  <div class="parmLine">
   <label class="width1g" title="Formant frequencies">Formant freq. [Hz]</label>
