@@ -1,0 +1,142 @@
+*, *:before, *:after {
+   box-sizing: inherit; }
+
+html {
+   font-size: 14px;
+   box-sizing: border-box; }
+
+body, button, input, select, textarea {
+   font-family: Lato, sans-serif;
+   font-size: inherit;
+   line-height: 1.4375; }
+
+body {
+   margin: 20px; }
+
+H1 {
+   font-size: 22px; }
+
+a {
+   color: #07C;
+   text-decoration: none; }
+a:hover {
+   text-decoration: underline; }
+.pseudoButton,
+.miniPseudoButton {
+   color: #07C;
+   cursor: pointer; }
+.miniPseudoButton {
+   font-size: 12px; }
+
+div.footer {
+   margin-top: 8px;
+   font-size: 12px; }
+
+code,
+.code {
+   font-family: Consolas, monospace; }
+code {
+   background-color: #eff0f1; }
+
+input[type="text"], input[type="number"] {
+   padding: 1px 2px; }
+
+input[type="number"]::-webkit-inner-spin-button {
+   -webkit-appearance: none; }
+input[type="number"] {
+   -moz-appearance: textfield; }
+input[type="text"]:invalid:not(:focus), input[type="number"]:invalid:not(:focus) {
+   box-shadow: 0 0 1px 1px #f00; }
+
+input[type="text"]:focus, input[type="number"]:focus, select:focus, canvas:focus {
+   outline: 1px auto #4D90FE; }
+
+.hidden {
+   display: none !important; }
+
+.parmBlock {
+   margin-bottom: 10px; }
+
+.parmLine {
+   display: flex;
+   align-items: baseline;
+   margin-top: 8px; }
+
+div.parmLine input[type="checkbox"] {
+   margin-left: 0; }
+
+div.parmHeading2 {
+   margin-top: 10px;
+   font-size: 12px;
+   font-weight: bold; }
+
+.width1 {
+   width: 110px; }
+.width1g {
+   width: 130px; }
+label.gap1 {
+   margin-left: 20px; }
+.width3 {
+   width: 350px; }
+
+.widthF {
+  width: 55px; }
+
+label[title] {
+   text-decoration: underline dotted #aaa;
+   text-underline-position: under; }
+
+div.actionButtons {
+   display: flex;
+   align-items: center;
+   margin-top: 20px; }
+
+div.actionButtons button {
+   width: 110px;
+   padding: 4px 0px;
+   margin-right: 20px; }
+
+.resultBlock {
+   margin-top: 20px; }
+
+.resultBlock .title {
+   font-size: 13px; }
+
+#signalViewer,
+#frequencyViewer {
+   display: block;
+   width: 800px;
+   margin-top: 8px;
+   border: 1px solid #888; }
+#signalViewer,
+#frequencyViewer {
+   height: 200px; }
+
+div.miniButtonsBelow {
+   margin-top: 5px;
+   display: flex; }
+
+div.miniButtonsBelow div {
+   margin-right: 10px; }
+
+#signalViewerHelpText {
+   background-color: #FEFAE2;
+   border: 1px solid #F3EED5;
+   padding: 3px;
+   margin-top: 15px;
+   margin-bottom: 20px;
+   width: 450px; }
+
+table.functionCurveViewerHelp {
+   border-collapse: collapse;
+   width: 100%; }
+
+table.functionCurveViewerHelp td {
+   padding: 3px;
+   vertical-align: top;
+   border-bottom: 1px solid #eee; }
+table.functionCurveViewerHelp tr:last-child td {
+   border-bottom: none; }
+
+.functionCurveViewerHelpCol1 {
+   width: 230px; }

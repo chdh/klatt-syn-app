@@ -1,0 +1,23 @@
+{
+   "compilerOptions": {
+      "alwaysStrict": true,
+      "lib": ["ES2017", "DOM", "DOM.Iterable"],
+      "module": "ES6",
+      "moduleResolution": "node",
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "noImplicitThis": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "outDir": "tempBuild",
+      "removeComments": true,
+      "sourceMap": true,
+      "strictFunctionTypes": true,
+      "strictNullChecks": true,
+      "target": "ES2017",
+   },
+   "include": [
+      "src/**/*"
+   ]
+}

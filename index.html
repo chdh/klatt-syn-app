@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+ <link rel="stylesheet" href="app.css">
+ <script src="app.js"></script>
+ <title>KlattSyn - Klatt Synthesizer</title>
+</head>
+<body>
+
+<h1>KlattSyn - Klatt Synthesizer</h1>
+
+<div class="parmBlock" id="inputParms">
+ <div class="parmLine">
+  <label class="width1g" for="glottalSourceType">Glottal source:</label>
+  <select class="width1" id="glottalSourceType">
+   <option value="impulsive">Impulsive</option>
+   <option value="natural">Natural</option>
+  </select>
+  <label class="width1g gap1" for="sampleRate">Sample rate [Hz]:</label>
+  <input class="width1" id="sampleRate" type="number" step="any" required>
+  <label class="width1g gap1" for="fadingDuration" title="Duration of fade-in and fade-out.">Fading [s]:</label>
+  <input class="width1" id="fadingDuration" type="number" step="any" min="0" required>
+ </div>
+
+ <div class="parmHeading2">Frame</div>
+ <div class="parmLine">
+  <label class="width1g" for="duration">Duration [s]:</label>
+  <input class="width1" id="duration" type="number" step="any" min="0" required>
+  <label class="width1g gap1" for="f0" title="Fundamental frequency.">F0 [Hz]:</label>
+  <input class="width1" id="f0" type="number" step="any" required>
+  <label class="width1g gap1" for="flutterLevel" title="F0 flutter level. A value between 0 and normally 1.">Flutter:</label>
+  <input class="width1" id="flutterLevel" type="number" step="any" min="0" required>
+  <label class="width1g gap1" for="openPhaseRatio" title="Open phase ratio. Relative length of the open phase of the glottis. A value between 0 and 1.">Open phase:</label>
+  <input class="width1" id="openPhaseRatio" type="number" step="any" min="0" max="1" required>
+ </div>
+ <div class="parmLine">
+  <label class="width1g" for="breathinessDb" title="Breathiness in voicing (turbulence) in dB. Positive to amplify, negative to attenuate.">Breathiness [dB]:</label>
+  <input class="width1" id="breathinessDb" type="number" step="any" required>
+  <label class="width1g gap1" for="tiltDb" title="Spectral tilt in dB. A positive number that specifies the attenuation at 3 kHz. 0 = no tilt.">Tilt [dB]:</label>
+  <input class="width1" id="tiltDb" type="number" step="any" min="0" required>
+  <label class="width1g gap1" for="gainDb" title="Overall gain (output gain) in dB. Positive to amplify or negative to attenuate the signal.">Gain [dB]:</label>
+  <input class="width1" id="gainDb" type="number" step="any" required>
+ </div>
+ <div class="parmLine">
+  <label class="width1g" title="Formant frequencies">Formant freq. [Hz]</label>
+  <label class="widthF" for="f1Freq" title="Oral formant 1 frequency in Hz.">F1:</label>
+  <input class="widthF" id="f1Freq" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f2Freq" title="Oral formant 2 frequency in Hz.">F2:</label>
+  <input class="widthF" id="f2Freq" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f3Freq" title="Oral formant 3 frequency in Hz.">F3:</label>
+  <input class="widthF" id="f3Freq" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f4Freq" title="Oral formant 4 frequency in Hz.">F4:</label>
+  <input class="widthF" id="f4Freq" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f5Freq" title="Oral formant 5 frequency in Hz.">F5:</label>
+  <input class="widthF" id="f5Freq" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f6Freq" title="Oral formant 6 frequency in Hz.">F6:</label>
+  <input class="widthF" id="f6Freq" type="number" step="any" min="0">
+  <label class="widthF gap1" for="nasalFormantFreq" title="Nasal formant frequency in Hz.">Nasal:</label>
+  <input class="widthF" id="nasalFormantFreq" type="number" step="any" min="0">
+ </div>
+ <div class="parmLine">
+  <label class="width1g" title="Formant bandwidths">Formant bw. [Hz]</label>
+  <label class="widthF" for="f1Bw" title="Oral formant 1 bandwidth in Hz.">F1:</label>
+  <input class="widthF" id="f1Bw" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f2Bw" title="Oral formant 2 bandwidth in Hz.">F2:</label>
+  <input class="widthF" id="f2Bw" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f3Bw" title="Oral formant 3 bandwidth in Hz.">F3:</label>
+  <input class="widthF" id="f3Bw" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f4Bw" title="Oral formant 4 bandwidth in Hz.">F4:</label>
+  <input class="widthF" id="f4Bw" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f5Bw" title="Oral formant 5 bandwidth in Hz.">F5:</label>
+  <input class="widthF" id="f5Bw" type="number" step="any" min="0">
+  <label class="widthF gap1" for="f6Bw" title="Oral formant 6 bandwidth in Hz.">F6:</label>
+  <input class="widthF" id="f6Bw" type="number" step="any" min="0">
+  <label class="widthF gap1" for="nasalFormantBw" title="Nasal formant bandwidth in Hz.">Nasal:</label>
+  <input class="widthF" id="nasalFormantBw" type="number" step="any" min="0">
+ </div>
+
+ <div class="parmHeading2">Cascade branch</div>
+ <div class="parmLine">
+  <label class="width1g" for="cascadeEnabled" title="Enable the cascade branch of the synthesizer.">Cascade enable:</label>
+  <div class="width1"><input id="cascadeEnabled" type="checkbox"></div>
+  <label class="width1g gap1" for="cascadeVoicingDb" title="Voicing amplitude for cascade branch in dB. Positive to amplify or negative to attenuate.">Voicing amp. [dB]:</label>
+  <input class="width1" id="cascadeVoicingDb" type="number" step="any" required>
+  <label class="width1g gap1" for="cascadeAspirationDb" title="Aspiration (glottis noise) for cascade branch in dB. Positive to amplify, negative to attenuate.">Aspiration [dB]:</label>
+  <input class="width1" id="cascadeAspirationDb" type="number" step="any" required>
+  <label class="width1g gap1" for="cascadeAspirationMod" title="Amplitude modulation factor for aspiration in cascade branch, 0 = no modulation, 1 = maximum modulation.">Aspiration mod.:</label>
+  <input class="width1" id="cascadeAspirationMod" type="number" step="any" min="0" max="1" required>
+ </div>
+ <div class="parmLine">
+  <label class="width1g" for="nasalAntiformantFreq" title="Nasal antiformant frequency in Hz.">Nasal anti freq. [Hz]:</label>
+  <input class="width1" id="nasalAntiformantFreq" type="number" step="any" min="0">
+  <label class="width1g gap1" for="nasalAntiformantBw" title="Nasal antiformant bandwidth in Hz.">Nasal anti bw. [Hz]:</label>
+  <input class="width1" id="nasalAntiformantBw" type="number" step="any" min="0">
+ </div>
+
+ <div class="parmHeading2">Parallel branch</div>
+ <div class="parmLine">
+  <label class="width1g" for="parallelEnabled" title="Enable the parallel branch of the synthesizer.">Parallel enable:</label>
+  <div class="width1"><input id="parallelEnabled" type="checkbox"></div>
+  <label class="width1g gap1" for="parallelVoicingDb" title="Voicing amplitude for parallel branch in dB. Positive to amplify or negative to attenuate.">Voicing amp. [dB]:</label>
+  <input class="width1" id="parallelVoicingDb" type="number" step="any" required>
+  <label class="width1g gap1" for="parallelAspirationDb" title="Aspiration (glottis noise) for parallel branch in dB. Positive to amplify, negative to attenuate.">Aspiration [dB]:</label>
+  <input class="width1" id="parallelAspirationDb" type="number" step="any" required>
+  <label class="width1g gap1" for="parallelAspirationMod" title="Amplitude modulation factor for aspiration in parallel branch, 0 = no modulation, 1 = maximum modulation.">Aspiration mod.:</label>
+  <input class="width1" id="parallelAspirationMod" type="number" step="any" min="0" max="1" required>
+ </div>
+ <div class="parmLine">
+  <label class="width1g" for="fricationDb" title="Frication noise level in dB.">Frication [dB]:</label>
+  <input class="width1" id="fricationDb" type="number" step="any">
+  <label class="width1g gap1" for="fricationMod" title="Amplitude modulation factor for frication noise in parallel branch, 0 = no modulation, 1 = maximum modulation.">Frication mod.:</label>
+  <input class="width1" id="fricationMod" type="number" min="0" max="1" step="any">
+  <label class="width1g gap1" for="parallelBypassDb" title="Parallel bypass level in dB, used to bypass differentiated glottal and frication signals around resonators F2 to F6.">Bypass [dB]:</label>
+  <input class="width1" id="parallelBypassDb" type="number" step="any">
+ </div>
+ <div class="parmLine">
+  <label class="width1g">Formant levels [dB]</label>
+  <label class="widthF" for="f1Db" title="Oral formant 1 level in DB.">F1:</label>
+  <input class="widthF" id="f1Db" type="number" step="any">
+  <label class="widthF gap1" for="f2Db" title="Oral formant 2 level in DB.">F2:</label>
+  <input class="widthF" id="f2Db" type="number" step="any">
+  <label class="widthF gap1" for="f3Db" title="Oral formant 3 level in DB.">F3:</label>
+  <input class="widthF" id="f3Db" type="number" step="any">
+  <label class="widthF gap1" for="f4Db" title="Oral formant 4 level in DB.">F4:</label>
+  <input class="widthF" id="f4Db" type="number" step="any">
+  <label class="widthF gap1" for="f5Db" title="Oral formant 5 level in DB.">F5:</label>
+  <input class="widthF" id="f5Db" type="number" step="any">
+  <label class="widthF gap1" for="f6Db" title="Oral formant 6 level in DB.">F6:</label>
+  <input class="widthF" id="f6Db" type="number" step="any">
+  <label class="widthF gap1" for="nasalFormantDb" title="Nasal formant level in DB.">Nasal:</label>
+  <input class="widthF" id="nasalFormantDb" type="number" step="any">
+ </div>
+</div>
+
+<div class="actionButtons">
+ <button id="synthesizeButton">Synthesize</button>
+ <button id="playButton">Play</button>
+ <button id="wavFileButton">WAV file</button>
+ <button id="resetButton">Reset</button>
+</div>
+
+<div class="resultBlock">
+ <div class="title">Signal</div>
+ <canvas id="signalViewer" tabindex="-1"></canvas>
+</div>
+
+<div class="footer">
+Source code on GitHub: &nbsp;<a href="https://github.com/chdh/klatt-syn">KlattSyn</a>, &nbsp;<a href="https://github.com/chdh/klatt-syn-app">KlattSynApp</a>,
+</div>
+
+</body>
+</html>
