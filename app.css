@@ -103,14 +103,15 @@ div.actionButtons button {
    font-size: 13px; }
 
 #signalViewer,
-#frequencyViewer {
+#spectrumViewer {
    display: block;
    width: 800px;
    margin-top: 8px;
    border: 1px solid #888; }
-#signalViewer,
-#frequencyViewer {
-   height: 200px; }
+#signalViewer {
+   height: 150px; }
+#spectrumViewer {
+   height: 300px; }
 
 div.miniButtonsBelow {
    margin-top: 5px;

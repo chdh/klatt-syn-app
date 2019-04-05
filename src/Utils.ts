@@ -1,4 +1,7 @@
 import * as WindowFunctions from "dsp-collection/signal/WindowFunctions";
+import * as Fft from "dsp-collection/signal/Fft";
+import * as DspUtils from "dsp-collection/utils/DspUtils";
+import ComplexArray from "dsp-collection/math/ComplexArray";
 
 export function openSaveAsDialog (blob: Blob, fileName: string) {
    const url = URL.createObjectURL(blob);
@@ -47,3 +50,17 @@ export function adjustSignalGain (samples: Float64Array, targetLevel = 0.9) {
    const r = targetLevel / maxAbs;
    for (let i = 0; i < n; i++) {
       samples[i] *= r; }}
+
+export function genSpectrum (samples: Float64Array, windowFunctionId: string) : Float64Array {
+   const evenSamples = samples.subarray(0, 2 * Math.floor(samples.length / 2)); // make event length to enable optimization
+   const windowedSamples = WindowFunctions.applyWindowById(evenSamples, windowFunctionId);
+   const complexSpectrum = Fft.fftRealSpectrum(windowedSamples);
+   const logSpectrum = genLogSpectrum(complexSpectrum);
+   return logSpectrum; }
+
+function genLogSpectrum (complexSpectrum: ComplexArray) : Float64Array {
+   const n = complexSpectrum.length;
+   const a = new Float64Array(n);
+   for (let i = 1; i < n; i++) {
+      a[i] = DspUtils.convertAmplitudeToDb(complexSpectrum.getAbs(i)); }
+   return a; }

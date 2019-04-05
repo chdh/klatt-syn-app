@@ -21,6 +21,8 @@
   <input class="width1" id="sampleRate" type="number" step="any" required>
   <label class="width1g gap1" for="fadingDuration" title="Duration of fade-in and fade-out.">Fading [s]:</label>
   <input class="width1" id="fadingDuration" type="number" step="any" min="0" required>
+  <label class="width1g gap1" for="windowFunction" title="Window function for displaying the spectrum.">Window function:</label>
+  <select class="width1" id="windowFunction"></select>
  </div>
 
  <div class="parmHeading2">Frame</div>
@@ -37,7 +39,7 @@
  <div class="parmLine">
   <label class="width1g" for="breathinessDb" title="Breathiness in voicing (turbulence) in dB. Positive to amplify, negative to attenuate.">Breathiness [dB]:</label>
   <input class="width1" id="breathinessDb" type="number" step="any" required>
-  <label class="width1g gap1" for="tiltDb" title="Spectral tilt in dB. A positive number that specifies the attenuation at 3 kHz. 0 = no tilt.">Tilt [dB]:</label>
+  <label class="width1g gap1" for="tiltDb" title="Spectral tilt for glottal source in dB. A positive number that specifies the attenuation at 3 kHz. 0 = no tilt.">Tilt [dB]:</label>
   <input class="width1" id="tiltDb" type="number" step="any" min="0" required>
   <label class="width1g gap1" for="gainDb" title="Overall gain (output gain) in dB. Positive to amplify or negative to attenuate the signal, empty for automatic gain.">Gain [dB]:</label>
   <input class="width1" id="gainDb" type="number" step="any" placeholder="(auto)">
@@ -143,6 +145,10 @@
 <div class="resultBlock">
  <div class="title">Signal</div>
  <canvas id="signalViewer" tabindex="-1"></canvas>
+</div>
+<div class="resultBlock">
+ <div class="title">Spectrum</div>
+ <canvas id="spectrumViewer" tabindex="-1"></canvas>
 </div>
 
 <div class="footer">

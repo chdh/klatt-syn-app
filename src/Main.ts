@@ -18,10 +18,13 @@ var wavFileButtonElement:              HTMLButtonElement;
 var resetButtonElement:                HTMLButtonElement;
 var signalViewerCanvas:                HTMLCanvasElement;
 var signalViewerWidget:                FunctionCurveViewer.Widget | undefined;
+var spectrumViewerCanvas:              HTMLCanvasElement;
+var spectrumViewerWidget:              FunctionCurveViewer.Widget | undefined;
 
 // Current synthesized signal:
 var signalSamples:                     Float64Array | undefined;
 var signalSampleRate:                  number;
+var signalSpectrum:                    Float64Array | undefined;     // logarithmic amplitude spectrum
 
 //--- Signal -------------------------------------------------------------------
 
@@ -36,6 +39,13 @@ function removeSignalViewer() {
    signalViewerWidget = undefined;
    clearCanvas(signalViewerCanvas); }
 
+function removeSpectrumViewer() {
+   if (!spectrumViewerWidget) {
+      return; }
+   spectrumViewerWidget.setConnected(false);
+   spectrumViewerWidget = undefined;
+   clearCanvas(spectrumViewerCanvas); }
+
 function setSignalViewer() {
    removeSignalViewer();
    signalViewerWidget = new FunctionCurveViewer.Widget(signalViewerCanvas);
@@ -46,14 +56,29 @@ function setSignalViewer() {
       xMax:            signalSamples!.length / signalSampleRate,
       yMin:            -1.2,
       yMax:            1.2,
-      gridEnabled:     true,
       primaryZoomMode: FunctionCurveViewer.ZoomMode.x,
       xAxisUnit:       "s",
       focusShield:     true };
    signalViewerWidget.setViewerState(viewerState); }
 
+function setSpectrumViewer() {
+   removeSpectrumViewer();
+   spectrumViewerWidget = new FunctionCurveViewer.Widget(spectrumViewerCanvas);
+   const viewerFunction = FunctionCurveViewer.createViewerFunctionForFloat64Array(signalSpectrum!, signalSamples!.length / signalSampleRate, 0, true);
+   const viewerState : FunctionCurveViewer.ViewerState = {
+      viewerFunction:  viewerFunction,
+      xMin:            0,
+      xMax:            5500,
+      yMin:            -100,
+      yMax:            0,
+      primaryZoomMode: FunctionCurveViewer.ZoomMode.x,
+      xAxisUnit:       "Hz",
+      yAxisUnit:       "dB",
+      focusShield:     true };
+   spectrumViewerWidget.setViewerState(viewerState); }
+
 function synthesize() {
-   signalSamples = undefined;
+   resetSignal();
    const uiParms = getUiParms();
    const agc = isNaN(uiParms.fParmsA[0].gainDb);           // automatic gain control
    if (agc) {
@@ -62,19 +87,24 @@ function synthesize() {
    signalSampleRate = uiParms.mParms.sampleRate;
    if (agc) {
       Utils.adjustSignalGain(signalSamples); }
+   signalSpectrum = Utils.genSpectrum(signalSamples, uiParms.windowFunctionId);
    Utils.fadeAudioSignalInPlace(signalSamples, uiParms.fadingDuration * signalSampleRate, WindowFunctions.hannWindow);
-   setSignalViewer(); }
+   setSignalViewer();
+   setSpectrumViewer(); }
 
 function resetSignal() {
+   removeSignalViewer();
+   removeSpectrumViewer();
    signalSamples = undefined;
-   removeSignalViewer(); }
+   signalSpectrum = undefined; }
 
 //--- UI parameters ------------------------------------------------------------
 
 interface UiParms {
    mParms:                   KlattSyn.MainParms;
    fParmsA:                  KlattSyn.FrameParms[];
-   fadingDuration:           number; }
+   fadingDuration:           number;
+   windowFunctionId:         string; }
 
 const defaultMainParms: KlattSyn.MainParms = {
    sampleRate:               44100,
@@ -115,7 +145,8 @@ const defaultFrameParms: KlattSyn.FrameParms = {
 const defaultUiParms: UiParms = {
    mParms:                   defaultMainParms,
    fParmsA:                  [defaultFrameParms],
-   fadingDuration:           0.05 };
+   fadingDuration:           0.05,
+   windowFunctionId:         "hann" };
 
 function setUiParms (uiParms: UiParms) {
 
@@ -162,7 +193,8 @@ function setUiParms (uiParms: UiParms) {
       const db = (i < fParms.oralFormantDb.length) ? fParms.oralFormantDb[i] : NaN;
       DomUtils.setValueNum("f" + (i + 1) + "Db", db); }
 
-   DomUtils.setValueNum("fadingDuration",        uiParms.fadingDuration); }
+   DomUtils.setValueNum("fadingDuration",        uiParms.fadingDuration);
+   DomUtils.setValue("windowFunction",           uiParms.windowFunctionId); }
 
 function getUiParms() : UiParms {
    const uiParms = <UiParms>{};
@@ -213,6 +245,7 @@ function getUiParms() : UiParms {
       fParms.oralFormantDb[i]   = DomUtils.getValueNum("f" + (i + 1) + "Db"); }
 
    uiParms.fadingDuration       = DomUtils.getValueNum("fadingDuration");
+   uiParms.windowFunctionId     = DomUtils.getValue("windowFunction");
 
    return uiParms; }
 
@@ -311,7 +344,8 @@ function encodeUrlParms (uiParms: UiParms) : string {
    UrlUtils.setNum(    usp, "parallelBypassDb",      fParms.parallelBypassDb,      fParms2.parallelBypassDb);
 
    const uiParms2 = defaultUiParms;
-   UrlUtils.setNum(usp, "fadingDuration", uiParms.fadingDuration, uiParms2.fadingDuration);
+   UrlUtils.setNum(usp, "fadingDuration", uiParms.fadingDuration,   uiParms2.fadingDuration);
+   UrlUtils.set(   usp, "window",         uiParms.windowFunctionId, uiParms2.windowFunctionId);
 
    let s = usp.toString();
    s = s.replace(/%2F/g, "/");                             // we don't need to and don't want to encode "/"
@@ -376,6 +410,7 @@ function decodeUrlParms (urlParmsString: string) : UiParms {
 
    const uiParms2 = defaultUiParms;
    uiParms.fadingDuration       = UrlUtils.getNum(usp, "fadingDuration", uiParms2.fadingDuration);
+   uiParms.windowFunctionId     = UrlUtils.get(   usp, "window",         uiParms2.windowFunctionId);
 
    return uiParms; }
 
@@ -459,9 +494,13 @@ function resetButton_click() {
 function startup2() {
    audioContext = new ((<any>window).AudioContext || (<any>window).webkitAudioContext)();
    audioPlayer = new InternalAudioPlayer(audioContext);
+   const windowFunctionSelectElement = <HTMLSelectElement>document.getElementById("windowFunction")!;
+   for (const d of WindowFunctions.windowFunctionIndex) {
+      windowFunctionSelectElement.add(new Option(d.name, d.id)); }
    audioPlayer.addEventListener("stateChange", refreshButtons);
    document.getElementById("inputParms")!.addEventListener("change", inputParms_change);
    signalViewerCanvas = <HTMLCanvasElement>document.getElementById("signalViewer")!;
+   spectrumViewerCanvas = <HTMLCanvasElement>document.getElementById("spectrumViewer")!;
    synthesizeButtonElement = <HTMLButtonElement>document.getElementById("synthesizeButton")!;
    synthesizeButtonElement.addEventListener("click", () => Utils.catchError(synthesizeButton_click));
    playButtonElement = <HTMLButtonElement>document.getElementById("playButton")!;
