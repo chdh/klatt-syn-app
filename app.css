@@ -76,8 +76,6 @@ div.parmHeading2 {
    width: 130px; }
 label.gap1 {
    margin-left: 20px; }
-.width3 {
-   width: 350px; }
 
 .widthF {
   width: 55px; }
@@ -105,13 +103,14 @@ div.actionButtons button {
 #signalViewer,
 #spectrumViewer {
    display: block;
-   width: 800px;
+   width: 1020px;
    margin-top: 8px;
    border: 1px solid #888; }
 #signalViewer {
    height: 150px; }
 #spectrumViewer {
-   height: 300px; }
+   height: 300px;
+   --curve-color1: #6383E2; }
 
 div.miniButtonsBelow {
    margin-top: 5px;

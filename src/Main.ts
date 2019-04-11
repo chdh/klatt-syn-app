@@ -6,6 +6,9 @@ import * as KlattSyn from "klatt-syn";
 import * as FunctionCurveViewer from "function-curve-viewer";
 import * as WavFileEncoder from "wav-file-encoder";
 import * as WindowFunctions from "dsp-collection/signal/WindowFunctions";
+import * as PolyReal from "dsp-collection/math/PolyReal";
+import MutableComplex from "dsp-collection/math/MutableComplex";
+import * as DspUtils from "dsp-collection/utils/DspUtils";
 
 var audioContext:                      AudioContext;
 var audioPlayer:                       InternalAudioPlayer;
@@ -25,6 +28,7 @@ var spectrumViewerWidget:              FunctionCurveViewer.Widget | undefined;
 var signalSamples:                     Float64Array | undefined;
 var signalSampleRate:                  number;
 var signalSpectrum:                    Float64Array | undefined;     // logarithmic amplitude spectrum
+var vocalTractSpectrumFunction:        (f: number) => number;
 
 //--- Signal -------------------------------------------------------------------
 
@@ -64,9 +68,15 @@ function setSignalViewer() {
 function setSpectrumViewer() {
    removeSpectrumViewer();
    spectrumViewerWidget = new FunctionCurveViewer.Widget(spectrumViewerCanvas);
-   const viewerFunction = FunctionCurveViewer.createViewerFunctionForFloat64Array(signalSpectrum!, signalSamples!.length / signalSampleRate, 0, true);
+   const signalSpectrumViewerFunction = FunctionCurveViewer.createViewerFunctionForFloat64Array(signalSpectrum!, signalSamples!.length / signalSampleRate, 0, true);
+   const viewerFunction = (x: number, sampleWidth: number, channel: number) => {
+      switch (channel) {
+         case 0:  return signalSpectrumViewerFunction(x, sampleWidth, 0);
+         case 1:  return vocalTractSpectrumFunction(x);
+         default: throw new Error(); }};
    const viewerState : FunctionCurveViewer.ViewerState = {
       viewerFunction:  viewerFunction,
+      channels:        2,
       xMin:            0,
       xMax:            5500,
       yMin:            -100,
@@ -77,18 +87,37 @@ function setSpectrumViewer() {
       focusShield:     true };
    spectrumViewerWidget.setViewerState(viewerState); }
 
+function createVocalTractSpectrumFunction (uiParms: UiParms) : (f: number) => number {
+   const fParms = uiParms.fParmsA[0];
+   const trans = KlattSyn.getVocalTractTransferFunctionCoefficients(uiParms.mParms, fParms);
+   const fScaling = 2 * Math.PI / uiParms.mParms.sampleRate;
+   const z = new MutableComplex();
+   const absVocalTractSpectrumFunction = (f: number) => {
+      const w = f * fScaling;
+      if (w < 0 || w >= Math.PI) {
+         return NaN; }
+      z.setExpj(w);
+      const r = PolyReal.evaluateFraction(trans, z);
+      const a = r.abs();
+      const db = DspUtils.convertAmplitudeToDb(a);
+      return db; };
+   const maxDb = Utils.findMaxFunctionValue(absVocalTractSpectrumFunction, [0, ...fParms.oralFormantFreq]);
+   return (f: number) => absVocalTractSpectrumFunction(f) - maxDb - 5; }
+
 function synthesize() {
    resetSignal();
    const uiParms = getUiParms();
-   const agc = isNaN(uiParms.fParmsA[0].gainDb);           // automatic gain control
+   const fParms = uiParms.fParmsA[0];
+   const agc = isNaN(fParms.gainDb);                       // automatic gain control
    if (agc) {
-      uiParms.fParmsA[0].gainDb = 0; }
+      fParms.gainDb = 0; }
    signalSamples = KlattSyn.generateSound(uiParms.mParms, uiParms.fParmsA);
    signalSampleRate = uiParms.mParms.sampleRate;
    if (agc) {
       Utils.adjustSignalGain(signalSamples); }
    signalSpectrum = Utils.genSpectrum(signalSamples, uiParms.windowFunctionId);
    Utils.fadeAudioSignalInPlace(signalSamples, uiParms.fadingDuration * signalSampleRate, WindowFunctions.hannWindow);
+   vocalTractSpectrumFunction = createVocalTractSpectrumFunction(uiParms);
    setSignalViewer();
    setSpectrumViewer(); }
 
@@ -510,12 +539,14 @@ function startup2() {
    resetButtonElement = <HTMLButtonElement>document.getElementById("resetButton")!;
    resetButtonElement.addEventListener("click", () => Utils.catchError(resetButton_click));
    window.onpopstate = () => Utils.catchError(restoreAppStateFromUrl_withErrorHandling);
-   restoreAppStateFromUrl_withErrorHandling(); }
+   restoreAppStateFromUrl_withErrorHandling();
+   synthesize(); }
 
 async function startup() {
    try {
       startup2(); }
     catch (e) {
+      console.log(e);
       alert("Error: " + e); }}
 
 document.addEventListener("DOMContentLoaded", startup);

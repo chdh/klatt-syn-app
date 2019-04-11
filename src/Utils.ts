@@ -36,20 +36,21 @@ export function fadeAudioSignalInPlace (samples: Float64Array, fadeMargin: numbe
       samples[i] *= w;
       samples[samples.length - 1 - i] *= w; }}
 
-export function adjustSignalGain (samples: Float64Array, targetLevel = 0.9) {
+export function adjustSignalGain (samples: Float64Array, targetLevel = 0.9) : number {
    const n = samples.length;
    if (!n) {
-      return; }
+      return 1; }
    let maxAbs = Math.abs(samples[0]);
    for (let i = 1; i < n; i++) {
       const abs = Math.abs(samples[i]);
       if (abs > maxAbs) {
          maxAbs = abs; }}
    if (!maxAbs) {
-      return; }
+      return 1; }
    const r = targetLevel / maxAbs;
    for (let i = 0; i < n; i++) {
-      samples[i] *= r; }}
+      samples[i] *= r; }
+   return r; }
 
 export function genSpectrum (samples: Float64Array, windowFunctionId: string) : Float64Array {
    const evenSamples = samples.subarray(0, 2 * Math.floor(samples.length / 2)); // make event length to enable optimization
@@ -61,6 +62,13 @@ export function genSpectrum (samples: Float64Array, windowFunctionId: string) : 
 function genLogSpectrum (complexSpectrum: ComplexArray) : Float64Array {
    const n = complexSpectrum.length;
    const a = new Float64Array(n);
-   for (let i = 1; i < n; i++) {
+   for (let i = 0; i < n; i++) {
       a[i] = DspUtils.convertAmplitudeToDb(complexSpectrum.getAbs(i)); }
    return a; }
+
+export function findMaxFunctionValue (f: (x: number) => number, xVals: number[]) : number {
+   let max = -Infinity;
+   for (const x of xVals) {
+      if (!isNaN(x)) {
+         max = Math.max(max, f(x)); }}
+   return max; }
