@@ -97,7 +97,7 @@ function createVocalTractSpectrumFunction (uiParms: UiParms) : (f: number) => nu
       if (w < 0 || w >= Math.PI) {
          return NaN; }
       z.setExpj(w);
-      const r = PolyReal.evaluateFraction(trans, z);
+      const r = PolyReal.evaluateFractionComplex(trans, z);
       const a = r.abs();
       const db = DspUtils.convertAmplitudeToDb(a);
       return db; };

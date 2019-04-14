@@ -1,13 +1,13 @@
 {
    "private": true,
    "dependencies": {
-      "dsp-collection": "^0.2.2",
+      "dsp-collection": "^0.2.3",
       "function-curve-viewer": "^1.0.19",
-      "klatt-syn": "^1.0.2",
+      "klatt-syn": "^1.0.3",
       "wav-file-encoder": "^1.0.0"
    },
    "devDependencies": {
-      "rollup-plugin-node-resolve": "^4.2.2"
+      "rollup-plugin-node-resolve": "^4.2.3"
    },
    "scripts": {
       "build": "tsc && rollup -c"
