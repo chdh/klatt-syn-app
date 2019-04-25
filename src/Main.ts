@@ -1,7 +1,9 @@
 import * as Utils from "./Utils";
 import * as DomUtils from "./DomUtils";
-import * as UrlUtils from "./UrlUtils";
+import * as AppParmsMod from "./AppParmsMod";
+import {AppParms} from "./AppParmsMod";
 import InternalAudioPlayer from "./InternalAudioPlayer";
+import * as ApiModeMod from "./ApiModeMod";
 import * as KlattSyn from "klatt-syn";
 import * as FunctionCurveViewer from "function-curve-viewer";
 import * as WavFileEncoder from "wav-file-encoder";
@@ -58,8 +60,8 @@ function setSignalViewer() {
       viewerFunction:  viewerFunction,
       xMin:            0,
       xMax:            signalSamples!.length / signalSampleRate,
-      yMin:            -1.2,
-      yMax:            1.2,
+      yMin:            -1,
+      yMax:            1,
       primaryZoomMode: FunctionCurveViewer.ZoomMode.x,
       xAxisUnit:       "s",
       focusShield:     true };
@@ -87,10 +89,10 @@ function setSpectrumViewer() {
       focusShield:     true };
    spectrumViewerWidget.setViewerState(viewerState); }
 
-function createVocalTractSpectrumFunction (uiParms: UiParms) : (f: number) => number {
-   const fParms = uiParms.fParmsA[0];
-   const trans = KlattSyn.getVocalTractTransferFunctionCoefficients(uiParms.mParms, fParms);
-   const fScaling = 2 * Math.PI / uiParms.mParms.sampleRate;
+function createVocalTractSpectrumFunction (appParms: AppParms) : (f: number) => number {
+   const fParms = appParms.fParmsA[0];
+   const trans = KlattSyn.getVocalTractTransferFunctionCoefficients(appParms.mParms, fParms);
+   const fScaling = 2 * Math.PI / appParms.mParms.sampleRate;
    const z = new MutableComplex();
    const absVocalTractSpectrumFunction = (f: number) => {
       const w = f * fScaling;
@@ -104,20 +106,17 @@ function createVocalTractSpectrumFunction (uiParms: UiParms) : (f: number) => nu
    const maxDb = Utils.findMaxFunctionValue(absVocalTractSpectrumFunction, [0, ...fParms.oralFormantFreq]);
    return (f: number) => absVocalTractSpectrumFunction(f) - maxDb - 5; }
 
+function synthesizeSignal (appParms: AppParms) {           // (this function is also used in API mode)
+   signalSamples = KlattSyn.generateSound(appParms.mParms, appParms.fParmsA);
+   signalSampleRate = appParms.mParms.sampleRate;
+   signalSpectrum = Utils.genSpectrum(signalSamples, appParms.windowFunctionId);
+   Utils.fadeAudioSignalInPlace(signalSamples, appParms.fadingDuration * signalSampleRate, WindowFunctions.hannWindow); }
+
 function synthesize() {
    resetSignal();
-   const uiParms = getUiParms();
-   const fParms = uiParms.fParmsA[0];
-   const agc = isNaN(fParms.gainDb);                       // automatic gain control
-   if (agc) {
-      fParms.gainDb = 0; }
-   signalSamples = KlattSyn.generateSound(uiParms.mParms, uiParms.fParmsA);
-   signalSampleRate = uiParms.mParms.sampleRate;
-   if (agc) {
-      Utils.adjustSignalGain(signalSamples); }
-   signalSpectrum = Utils.genSpectrum(signalSamples, uiParms.windowFunctionId);
-   Utils.fadeAudioSignalInPlace(signalSamples, uiParms.fadingDuration * signalSampleRate, WindowFunctions.hannWindow);
-   vocalTractSpectrumFunction = createVocalTractSpectrumFunction(uiParms);
+   const appParms = getUiParms();
+   synthesizeSignal(appParms);
+   vocalTractSpectrumFunction = createVocalTractSpectrumFunction(appParms);
    setSignalViewer();
    setSpectrumViewer(); }
 
@@ -129,63 +128,15 @@ function resetSignal() {
 
 //--- UI parameters ------------------------------------------------------------
 
-interface UiParms {
-   mParms:                   KlattSyn.MainParms;
-   fParmsA:                  KlattSyn.FrameParms[];
-   fadingDuration:           number;
-   windowFunctionId:         string; }
-
-const defaultMainParms: KlattSyn.MainParms = {
-   sampleRate:               44100,
-   glottalSourceType:        KlattSyn.GlottalSourceType.impulsive };
-
-const defaultFrameParms: KlattSyn.FrameParms = {
-   duration:                 1,
-   f0:                       247,    // 220,
-   flutterLevel:             0.25,
-   openPhaseRatio:           0.7,
-   breathinessDb:            -25,
-   tiltDb:                   0,
-   gainDb:                   NaN,
-   nasalFormantFreq:         NaN,
-   nasalFormantBw:           NaN,
-   oralFormantFreq:          [520, 1006, 2831, 3168, 4135, 5020],
-   oralFormantBw:            [76,  102,  72,   102,  816,  596 ],
-
-   // Cascade branch:
-   cascadeEnabled:           true,
-   cascadeVoicingDb:         0,
-   cascadeAspirationDb:      -25,
-   cascadeAspirationMod:     0.5,
-   nasalAntiformantFreq:     NaN,
-   nasalAntiformantBw:       NaN,
-
-   // Parallel branch:
-   parallelEnabled:          false,
-   parallelVoicingDb:        0,
-   parallelAspirationDb:     -25,
-   parallelAspirationMod:    0.5,
-   fricationDb:              -30,
-   fricationMod:             0.5,
-   parallelBypassDb:         -99,
-   nasalFormantDb:           NaN,
-   oralFormantDb:            [0, -8, -15, -19, -30, -35] };
-
-const defaultUiParms: UiParms = {
-   mParms:                   defaultMainParms,
-   fParmsA:                  [defaultFrameParms],
-   fadingDuration:           0.05,
-   windowFunctionId:         "hann" };
-
-function setUiParms (uiParms: UiParms) {
+function setUiParms (appParms: AppParms) {
 
    // Main parameters:
-   const mParms = uiParms.mParms;
+   const mParms = appParms.mParms;
    DomUtils.setValueNum("sampleRate",            mParms.sampleRate);
    DomUtils.setValue("glottalSourceType",        KlattSyn.glottalSourceTypeEnumNames[mParms.glottalSourceType]);
 
    // Frame parameters:
-   const fParms = uiParms.fParmsA[0];                      // temporary solution for a single frame
+   const fParms = appParms.fParmsA[0];                     // temporary solution for a single frame
    DomUtils.setValueNum("duration",              fParms.duration);
    DomUtils.setValueNum("f0",                    fParms.f0);
    DomUtils.setValueNum("flutterLevel",          fParms.flutterLevel);
@@ -193,6 +144,7 @@ function setUiParms (uiParms: UiParms) {
    DomUtils.setValueNum("breathinessDb",         fParms.breathinessDb);
    DomUtils.setValueNum("tiltDb",                fParms.tiltDb);
    DomUtils.setValueNum("gainDb",                fParms.gainDb);
+   DomUtils.setValueNum("agcRmsLevel",           fParms.agcRmsLevel);
    DomUtils.setValueNum("nasalFormantFreq",      fParms.nasalFormantFreq);
    DomUtils.setValueNum("nasalFormantBw",        fParms.nasalFormantBw);
    for (let i = 0; i < KlattSyn.maxOralFormants; i++) {
@@ -222,21 +174,21 @@ function setUiParms (uiParms: UiParms) {
       const db = (i < fParms.oralFormantDb.length) ? fParms.oralFormantDb[i] : NaN;
       DomUtils.setValueNum("f" + (i + 1) + "Db", db); }
 
-   DomUtils.setValueNum("fadingDuration",        uiParms.fadingDuration);
-   DomUtils.setValue("windowFunction",           uiParms.windowFunctionId); }
+   DomUtils.setValueNum("fadingDuration",        appParms.fadingDuration);
+   DomUtils.setValue("windowFunction",           appParms.windowFunctionId); }
 
-function getUiParms() : UiParms {
-   const uiParms = <UiParms>{};
+function getUiParms() : AppParms {
+   const appParms = <AppParms>{};
 
    // Main parameters:
    const mParms = <KlattSyn.MainParms>{};
-   uiParms.mParms = mParms;
+   appParms.mParms = mParms;
    mParms.sampleRate            = DomUtils.getValueNum("sampleRate");
-   mParms.glottalSourceType     = decodeGlottalSourceType(DomUtils.getValue("glottalSourceType"));
+   mParms.glottalSourceType     = AppParmsMod.decodeGlottalSourceType(DomUtils.getValue("glottalSourceType"));
 
    // Frame parameters:
    const fParms = <KlattSyn.FrameParms>{};
-   uiParms.fParmsA = [fParms];                             // temporary solution for a single frame
+   appParms.fParmsA = [fParms];                            // temporary solution for a single frame
    fParms.duration              = DomUtils.getValueNum("duration");
    fParms.f0                    = DomUtils.getValueNum("f0");
    fParms.flutterLevel          = DomUtils.getValueNum("flutterLevel");
@@ -244,6 +196,7 @@ function getUiParms() : UiParms {
    fParms.breathinessDb         = DomUtils.getValueNum("breathinessDb");
    fParms.tiltDb                = DomUtils.getValueNum("tiltDb");
    fParms.gainDb                = DomUtils.getValueNum("gainDb");
+   fParms.agcRmsLevel           = DomUtils.getValueNum("agcRmsLevel");
    fParms.nasalFormantFreq      = DomUtils.getValueNum("nasalFormantFreq");
    fParms.nasalFormantBw        = DomUtils.getValueNum("nasalFormantBw");
    fParms.oralFormantFreq       = Array(KlattSyn.maxOralFormants);
@@ -273,180 +226,23 @@ function getUiParms() : UiParms {
    for (let i = 0; i < KlattSyn.maxOralFormants; i++) {
       fParms.oralFormantDb[i]   = DomUtils.getValueNum("f" + (i + 1) + "Db"); }
 
-   uiParms.fadingDuration       = DomUtils.getValueNum("fadingDuration");
-   uiParms.windowFunctionId     = DomUtils.getValue("windowFunction");
+   appParms.fadingDuration      = DomUtils.getValueNum("fadingDuration");
+   appParms.windowFunctionId    = DomUtils.getValue("windowFunction");
 
-   return uiParms; }
+   return appParms; }
 
 //--- URL parameters -----------------------------------------------------------
 
-function setUrlResonator (usp: URLSearchParams, parmName: string, freq: number, bw: number, db: number) {
-   if (!freq || isNaN(freq) || !bw || isNaN(bw)) {
-      return; }
-   let s = freq + "/" + bw;
-   if (!isNaN(db)) {
-      s += "/" + db; }
-   usp.set(parmName, s); }
-
-// Returnd `undefined` on error.
-function decodeResonatorSpec (s: string) {
-   const a = s.split("/");
-   if (a.length > 3) {
-      return; }
-   const freq = Number(a[0]);
-   if (!isFinite(freq)) {
-      return; }
-   let bw: number;
-   if (a.length >= 2) {
-      bw = Number(a[1]);
-      if (!isFinite(bw)) {
-         return; }}
-    else {
-      bw = NaN; }
-   let db: number;
-   if (a.length >= 3) {
-      db = Number(a[2]);
-      if (!isFinite(db)) {
-         return; }}
-    else {
-      db = NaN; }
-   return {freq, bw, db}; }
-
-function getUrlResonator (usp: URLSearchParams, parmName: string) : {freq: number; bw: number; db: number} {
-   const s = usp.get(parmName);
-   if (!s) {
-      return {freq: NaN, bw: NaN, db: NaN}; }
-   const r = decodeResonatorSpec(s);
-   if (!r) {
-      throw new Error(`Invalid resonator specification "${s}" for URL parameter "${parmName}".`); }
-   return r; }
-
-function decodeGlottalSourceType (s: string) : KlattSyn.GlottalSourceType {
-   const i = KlattSyn.glottalSourceTypeEnumNames.indexOf(s);
-   if (i < 0) {
-      throw new Error(`Unknown glottal source type "${s}".`); }
-   return i; }
-
-function encodeUrlParms (uiParms: UiParms) : string {
-   const usp = new URLSearchParams();
-
-   // Main parameters:
-   const mParms = uiParms.mParms;
-   const mParms2 = defaultMainParms;                       // default values
-   UrlUtils.setNum(usp, "sampleRate", mParms.sampleRate, mParms2.sampleRate);
-   if (mParms.glottalSourceType != mParms2.glottalSourceType) {
-      usp.set("glottalSourceType", KlattSyn.glottalSourceTypeEnumNames[mParms.glottalSourceType]); }
-
-   // Frame parameters:
-   const fParms = uiParms.fParmsA[0];                      // temporary solution for a single frame
-   const fParms2 = defaultFrameParms;                      // default values
-   UrlUtils.setNum(usp, "duration",        fParms.duration,       fParms2.duration);
-   UrlUtils.setNum(usp, "f0",              fParms.f0);
-   UrlUtils.setNum(usp, "flutterLevel",    fParms.flutterLevel,   fParms2.flutterLevel);
-   UrlUtils.setNum(usp, "openPhaseRatio",  fParms.openPhaseRatio, fParms2.openPhaseRatio);
-   UrlUtils.setNum(usp, "breathinessDb",   fParms.breathinessDb,  fParms2.breathinessDb);
-   UrlUtils.setNum(usp, "tiltDb",          fParms.tiltDb,         fParms2.tiltDb);
-   UrlUtils.setNum(usp, "gainDb",          fParms.gainDb);
-
-   // Resonators:
-   setUrlResonator(usp, "nasalFormant",         fParms.nasalFormantFreq,     fParms.nasalFormantBw,     fParms.nasalFormantDb);
-   setUrlResonator(usp, "nasalAntiformantFreq", fParms.nasalAntiformantFreq, fParms.nasalAntiformantBw, NaN);
-   for (let i = 0; i < KlattSyn.maxOralFormants; i++) {
-      const f =  (i < fParms.oralFormantFreq.length) ? fParms.oralFormantFreq[i] : NaN;
-      const bw = (i < fParms.oralFormantBw.length)   ? fParms.oralFormantBw[i]   : NaN;
-      const db = (i < fParms.oralFormantDb.length)   ? fParms.oralFormantDb[i]   : NaN;
-      setUrlResonator(usp, "f" + (i + 1), f, bw, db); }
-
-   // Cascade branch:
-   UrlUtils.setBoolean(usp, "cascadeEnabled",        fParms.cascadeEnabled,        fParms2.cascadeEnabled);
-   UrlUtils.setNum(    usp, "cascadeVoicingDb",      fParms.cascadeVoicingDb,      fParms2.cascadeVoicingDb);
-   UrlUtils.setNum(    usp, "cascadeAspirationDb",   fParms.cascadeAspirationDb,   fParms2.cascadeAspirationDb);
-   UrlUtils.setNum(    usp, "cascadeAspirationMod",  fParms.cascadeAspirationMod,  fParms2.cascadeAspirationMod);
-
-   // Parallel branch:
-   UrlUtils.setBoolean(usp, "parallelEnabled",       fParms.parallelEnabled,       fParms2.parallelEnabled);
-   UrlUtils.setNum(    usp, "parallelVoicingDb",     fParms.parallelVoicingDb,     fParms2.parallelVoicingDb);
-   UrlUtils.setNum(    usp, "parallelAspirationDb",  fParms.parallelAspirationDb,  fParms2.parallelAspirationDb);
-   UrlUtils.setNum(    usp, "parallelAspirationMod", fParms.parallelAspirationMod, fParms2.parallelAspirationMod);
-   UrlUtils.setNum(    usp, "fricationDb",           fParms.fricationDb,           fParms2.fricationDb);
-   UrlUtils.setNum(    usp, "fricationMod",          fParms.fricationMod,          fParms2.fricationMod);
-   UrlUtils.setNum(    usp, "parallelBypassDb",      fParms.parallelBypassDb,      fParms2.parallelBypassDb);
-
-   const uiParms2 = defaultUiParms;
-   UrlUtils.setNum(usp, "fadingDuration", uiParms.fadingDuration,   uiParms2.fadingDuration);
-   UrlUtils.set(   usp, "window",         uiParms.windowFunctionId, uiParms2.windowFunctionId);
-
-   let s = usp.toString();
-   s = s.replace(/%2F/g, "/");                             // we don't need to and don't want to encode "/"
-   return s; }
-
-function decodeUrlParms (urlParmsString: string) : UiParms {
-   if (!urlParmsString) {
-      return defaultUiParms; }
-   const usp = new URLSearchParams(urlParmsString);
-   const uiParms = <UiParms>{};
-
-   // Main parameters:
-   const mParms = <KlattSyn.MainParms>{};
-   const mParms2 = defaultMainParms;                       // default values
-   uiParms.mParms = mParms;
-   mParms.sampleRate            = UrlUtils.getNum(usp, "sampleRate", mParms2.sampleRate);
-   mParms.glottalSourceType     = decodeGlottalSourceType(UrlUtils.get(usp, "glottalSourceType", "impulsive"));
-
-   // Frame parameters:
-   const fParms = <KlattSyn.FrameParms>{};
-   const fParms2 = defaultFrameParms;                      // default values
-   uiParms.fParmsA = [fParms];                             // temporary solution for a single frame
-   fParms.duration              = UrlUtils.getNum(usp, "duration",       fParms2.duration);
-   fParms.f0                    = UrlUtils.getNum(usp, "f0",             220);
-   fParms.flutterLevel          = UrlUtils.getNum(usp, "flutterLevel",   fParms2.flutterLevel);
-   fParms.openPhaseRatio        = UrlUtils.getNum(usp, "openPhaseRatio", fParms2.openPhaseRatio);
-   fParms.breathinessDb         = UrlUtils.getNum(usp, "breathinessDb",  fParms2.breathinessDb);
-   fParms.tiltDb                = UrlUtils.getNum(usp, "tiltDb",         fParms2.tiltDb);
-   fParms.gainDb                = UrlUtils.getNum(usp, "gainDb");
-
-   // Resonators:
-   const nasalFormatRes         = getUrlResonator(usp,"nasalFormant");
-   fParms.nasalFormantFreq      = nasalFormatRes.freq;
-   fParms.nasalFormantBw        = nasalFormatRes.bw;
-   fParms.nasalFormantDb        = nasalFormatRes.db;
-   const nasalAntiformantRes    = getUrlResonator(usp, "nasalAntiformant");
-   fParms.nasalAntiformantFreq  = nasalAntiformantRes.freq;
-   fParms.nasalAntiformantBw    = nasalAntiformantRes.bw;
-   fParms.oralFormantFreq       = Array(KlattSyn.maxOralFormants);
-   fParms.oralFormantBw         = Array(KlattSyn.maxOralFormants);
-   fParms.oralFormantDb         = Array(KlattSyn.maxOralFormants);
-   for (let i = 0; i < KlattSyn.maxOralFormants; i++) {
-      const r                   = getUrlResonator(usp, "f" + (i + 1));
-      fParms.oralFormantFreq[i] = r.freq;
-      fParms.oralFormantBw[i]   = r.bw;
-      fParms.oralFormantDb[i]   = r.db; }
-
-   // Cascade branch:
-   fParms.cascadeEnabled        = UrlUtils.getBoolean(usp, "cascadeEnabled",    fParms2.cascadeEnabled);
-   fParms.cascadeVoicingDb      = UrlUtils.getNum(usp, "cascadeVoicingDb",      fParms2.cascadeVoicingDb);
-   fParms.cascadeAspirationDb   = UrlUtils.getNum(usp, "cascadeAspirationDb",   fParms2.cascadeAspirationDb);
-   fParms.cascadeAspirationMod  = UrlUtils.getNum(usp, "cascadeAspirationMod",  fParms2.cascadeAspirationMod);
-
-   // Parallel branch:
-   fParms.parallelEnabled       = UrlUtils.getBoolean(usp, "parallelEnabled",   fParms2.parallelEnabled);
-   fParms.parallelVoicingDb     = UrlUtils.getNum(usp, "parallelVoicingDb",     fParms2.parallelVoicingDb);
-   fParms.parallelAspirationDb  = UrlUtils.getNum(usp, "parallelAspirationDb",  fParms2.parallelAspirationDb);
-   fParms.parallelAspirationMod = UrlUtils.getNum(usp, "parallelAspirationMod", fParms2.parallelAspirationMod);
-   fParms.fricationDb           = UrlUtils.getNum(usp, "fricationDb",           fParms2.fricationDb);
-   fParms.fricationMod          = UrlUtils.getNum(usp, "fricationMod",          fParms2.fricationMod);
-   fParms.parallelBypassDb      = UrlUtils.getNum(usp, "parallelBypassDb",      fParms2.parallelBypassDb);
-
-   const uiParms2 = defaultUiParms;
-   uiParms.fadingDuration       = UrlUtils.getNum(usp, "fadingDuration", uiParms2.fadingDuration);
-   uiParms.windowFunctionId     = UrlUtils.get(   usp, "window",         uiParms2.windowFunctionId);
-
-   return uiParms; }
+function recodeUrlParms_ignoreErr (urlParmsString: string) : string {
+   try {
+      return AppParmsMod.encodeUrlParms(AppParmsMod.decodeUrlParms(urlParmsString)); }
+     catch (e) {
+       return ""; }}
 
 function refreshUrl (commit = false) {
-   const uiParms = getUiParms();
-   const urlParmsString = encodeUrlParms(uiParms);
-   if (urlParmsString == window.location.hash.substring(1)) {
+   const appParms = getUiParms();
+   const urlParmsString = AppParmsMod.encodeUrlParms(appParms);
+   if (urlParmsString == recodeUrlParms_ignoreErr(window.location.hash.substring(1))) {
       if (commit) {
          urlDirty = false; }
       return; }
@@ -458,8 +254,8 @@ function refreshUrl (commit = false) {
 
 function restoreAppState (urlParmsString: string) {
    audioPlayer.stop();
-   const uiParms = decodeUrlParms(urlParmsString);
-   setUiParms(uiParms);
+   const appParms = AppParmsMod.decodeUrlParms(urlParmsString);
+   setUiParms(appParms);
    resetSignal();
    refreshButtons(); }
 
@@ -482,7 +278,7 @@ function refreshButtons() {
 
 function resetApplicationState() {
    audioPlayer.stop();
-   setUiParms(defaultUiParms);
+   setUiParms(AppParmsMod.defaultAppParms);
    resetSignal();
    refreshButtons();
    refreshUrl(); }
@@ -520,13 +316,13 @@ function wavFileButton_click() {
 function resetButton_click() {
    restoreAppState("dummy=1"); }
 
-function startup2() {
+function initGuiMode() {
    audioContext = new ((<any>window).AudioContext || (<any>window).webkitAudioContext)();
    audioPlayer = new InternalAudioPlayer(audioContext);
+   audioPlayer.addEventListener("stateChange", refreshButtons);
    const windowFunctionSelectElement = <HTMLSelectElement>document.getElementById("windowFunction")!;
    for (const d of WindowFunctions.windowFunctionIndex) {
       windowFunctionSelectElement.add(new Option(d.name, d.id)); }
-   audioPlayer.addEventListener("stateChange", refreshButtons);
    document.getElementById("inputParms")!.addEventListener("change", inputParms_change);
    signalViewerCanvas = <HTMLCanvasElement>document.getElementById("signalViewer")!;
    spectrumViewerCanvas = <HTMLCanvasElement>document.getElementById("spectrumViewer")!;
@@ -542,9 +338,16 @@ function startup2() {
    restoreAppStateFromUrl_withErrorHandling();
    synthesize(); }
 
+function init() {
+   const apiMode = !document.body.classList.contains("klattSynApp");  // API-only mode without GUI
+   if (apiMode) {
+      ApiModeMod.init(); }
+    else {
+      initGuiMode(); }}
+
 async function startup() {
    try {
-      startup2(); }
+      init(); }
     catch (e) {
       console.log(e);
       alert("Error: " + e); }}

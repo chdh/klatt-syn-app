@@ -3,7 +3,7 @@
    "dependencies": {
       "dsp-collection": "^0.2.4",
       "function-curve-viewer": "^1.0.19",
-      "klatt-syn": "^1.0.3",
+      "klatt-syn": "^1.0.4",
       "wav-file-encoder": "^1.0.0"
    },
    "devDependencies": {

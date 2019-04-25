@@ -6,7 +6,12 @@
  <script src="app.js"></script>
  <title>KlattSyn - Klatt Formant Synthesizer</title>
 </head>
-<body>
+<body class="klattSynApp">
+
+<script>
+ if (!window.Promise) {
+    document.write('<p style="color: red; font-size: 20px; font-weight: bold;">Sorry, your web browser is outdated and cannot run this application!</p>'); }
+</script>
 
 <h1>KlattSyn - Klatt Formant Synthesizer</h1>
 
@@ -42,8 +47,10 @@
   <input class="width1" id="breathinessDb" type="number" step="any" required>
   <label class="width1g gap1" for="tiltDb" title="Spectral tilt for glottal source in dB. A positive number that specifies the attenuation at 3 kHz. 0 = no tilt.">Tilt [dB]:</label>
   <input class="width1" id="tiltDb" type="number" step="any" min="0" required>
-  <label class="width1g gap1" for="gainDb" title="Overall gain (output gain) in dB. Positive to amplify or negative to attenuate the signal, empty for automatic gain.">Gain [dB]:</label>
+  <label class="width1g gap1" for="gainDb" title="Overall gain (output gain) in dB. Positive to amplify or negative to attenuate the signal, empty for automatic gain (AGC).">Gain [dB]:</label>
   <input class="width1" id="gainDb" type="number" step="any" placeholder="(auto)">
+  <label class="width1g gap1" for="agcRmsLevel" title="RMS level for automatic gain control (AGC), only relevant when the gain parameter field is empty.">AGC RMS level:</label>
+  <input class="width1" id="agcRmsLevel" type="number" step="any" min="0" required>
  </div>
  <div class="parmLine">
   <label class="width1g" title="Formant frequencies">Formant freq. [Hz]</label>
