@@ -175,7 +175,8 @@ function setUiParms (appParms: AppParms) {
       DomUtils.setValueNum("f" + (i + 1) + "Db", db); }
 
    DomUtils.setValueNum("fadingDuration",        appParms.fadingDuration);
-   DomUtils.setValue("windowFunction",           appParms.windowFunctionId); }
+   DomUtils.setValue("windowFunction",           appParms.windowFunctionId);
+   DomUtils.setValue("reference",                appParms.reference || ""); }
 
 function getUiParms() : AppParms {
    const appParms = <AppParms>{};
@@ -228,6 +229,7 @@ function getUiParms() : AppParms {
 
    appParms.fadingDuration      = DomUtils.getValueNum("fadingDuration");
    appParms.windowFunctionId    = DomUtils.getValue("windowFunction");
+   appParms.reference           = DomUtils.getValue("reference");
 
    return appParms; }
 
@@ -311,7 +313,9 @@ function wavFileButton_click() {
    const buffer = Utils.createAudioBufferFromSamples(signalSamples!, signalSampleRate, audioContext);
    const wavFileData = WavFileEncoder.encodeWavFile(buffer, WavFileEncoder.WavFileType.float32);
    const blob = new Blob([wavFileData], {type: "audio/wav"});
-   Utils.openSaveAsDialog(blob, "klattSyn.wav"); }
+   const reference = DomUtils.getValue("reference");
+   const fileName = "klattSyn" + (reference ? "-" + reference : "") + ".wav";
+   Utils.openSaveAsDialog(blob, fileName); }
 
 function resetButton_click() {
    restoreAppState("dummy=1"); }

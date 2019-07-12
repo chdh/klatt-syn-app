@@ -36,7 +36,7 @@
   <label class="width1g" for="duration">Duration [s]:</label>
   <input class="width1" id="duration" type="number" step="any" min="0" required>
   <label class="width1g gap1" for="f0" title="Fundamental frequency.">F0 [Hz]:</label>
-  <input class="width1" id="f0" type="number" step="any" required>
+  <input class="width1" id="f0" type="number" step="any" min="0" required>
   <label class="width1g gap1" for="flutterLevel" title="F0 flutter level. A value between 0 and normally 1.">Flutter:</label>
   <input class="width1" id="flutterLevel" type="number" step="any" min="0" required>
   <label class="width1g gap1" for="openPhaseRatio" title="Open phase ratio. Relative length of the open phase of the glottis. A value between 0 and 1.">Open phase:</label>
@@ -148,6 +148,8 @@
  <button id="playButton">Play</button>
  <button id="wavFileButton">WAV file</button>
  <button id="resetButton">Reset</button>
+ <label class="width1g" for="reference" title="An arbitrary text which will be stored in the URL and used in the name of the WAV file.">Reference:</label>
+ <input class="width3" id="reference" type="text">
 </div>
 
 <div class="resultBlock">

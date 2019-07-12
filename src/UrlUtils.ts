@@ -1,5 +1,5 @@
-export function set (usp: URLSearchParams, parmName: string, parmValue: string, defaultValue = "") {
-   if (parmValue == "" || parmValue == defaultValue) {
+export function set (usp: URLSearchParams, parmName: string, parmValue: string|undefined, defaultValue = "") {
+   if (!parmValue || parmValue == defaultValue) {
       return; }
    usp.set(parmName, parmValue); }
 

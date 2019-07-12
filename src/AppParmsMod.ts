@@ -5,7 +5,8 @@ export interface AppParms {
    mParms:                   KlattSyn.MainParms;
    fParmsA:                  KlattSyn.FrameParms[];
    fadingDuration:           number;
-   windowFunctionId:         string; }
+   windowFunctionId:         string;
+   reference?:               string; }
 
 //--- Defaults -----------------------------------------------------------------
 
@@ -150,6 +151,7 @@ export function encodeUrlParms (appParms: AppParms) : string {
    const appParms2 = defaultAppParms;
    UrlUtils.setNum(usp, "fadingDuration", appParms.fadingDuration,   appParms2.fadingDuration);
    UrlUtils.set(   usp, "window",         appParms.windowFunctionId, appParms2.windowFunctionId);
+   UrlUtils.set(   usp, "ref",            appParms.reference);
 
    let s = usp.toString();
    s = s.replace(/%2F/g, "/");                             // we don't need to and don't want to encode "/"
@@ -216,5 +218,6 @@ export function decodeUrlParms (urlParmsString: string) : AppParms {
    const appParms2 = defaultAppParms;
    appParms.fadingDuration       = UrlUtils.getNum(usp, "fadingDuration", appParms2.fadingDuration);
    appParms.windowFunctionId     = UrlUtils.get(   usp, "window",         appParms2.windowFunctionId);
+   appParms.reference            = UrlUtils.get(   usp, "ref");
 
    return appParms; }

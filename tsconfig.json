@@ -1,5 +1,6 @@
 {
    "compilerOptions": {
+      "allowUnreachableCode": false,
       "alwaysStrict": true,
       "lib": ["ES2017", "DOM", "DOM.Iterable"],
       "module": "ES6",
