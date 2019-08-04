@@ -22,7 +22,7 @@ const defaultFrameParms: KlattSyn.FrameParms = {
    breathinessDb:            -25,
    tiltDb:                   0,
    gainDb:                   NaN,
-   agcRmsLevel:              0.2,
+   agcRmsLevel:              0.18,
    nasalFormantFreq:         NaN,
    nasalFormantBw:           NaN,
    oralFormantFreq:          [520, 1006, 2831, 3168, 4135, 5020],
