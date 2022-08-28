@@ -20,8 +20,7 @@ function audioPlayer_stateChange() {
 function delayedInit() {
    if (delayedInitDone) {
       return; }
-   const audioContext = new ((<any>window).AudioContext || (<any>window).webkitAudioContext)();
-   audioPlayer = new InternalAudioPlayer(audioContext);
+   audioPlayer = new InternalAudioPlayer();
    audioPlayer.addEventListener("stateChange", audioPlayer_stateChange);
    delayedInitDone = true; }
 

@@ -12,7 +12,6 @@ import * as PolyReal from "dsp-collection/math/PolyReal";
 import MutableComplex from "dsp-collection/math/MutableComplex";
 import * as DspUtils from "dsp-collection/utils/DspUtils";
 
-var audioContext:                      AudioContext;
 var audioPlayer:                       InternalAudioPlayer;
 var urlDirty:                          boolean = false;
 
@@ -56,7 +55,7 @@ function setSignalViewer() {
    removeSignalViewer();
    signalViewerWidget = new FunctionCurveViewer.Widget(signalViewerCanvas);
    const viewerFunction = FunctionCurveViewer.createViewerFunctionForFloat64Array(signalSamples!, signalSampleRate);
-   const viewerState : FunctionCurveViewer.ViewerState = {
+   const viewerState: Partial<FunctionCurveViewer.ViewerState> = {
       viewerFunction:  viewerFunction,
       xMin:            0,
       xMax:            signalSamples!.length / signalSampleRate,
@@ -76,7 +75,7 @@ function setSpectrumViewer() {
          case 0:  return signalSpectrumViewerFunction(x, sampleWidth, 0);
          case 1:  return vocalTractSpectrumFunction(x);
          default: throw new Error(); }};
-   const viewerState : FunctionCurveViewer.ViewerState = {
+   const viewerState: Partial<FunctionCurveViewer.ViewerState> = {
       viewerFunction:  viewerFunction,
       channels:        2,
       xMin:            0,
@@ -176,7 +175,7 @@ function setUiParms (appParms: AppParms) {
 
    DomUtils.setValueNum("fadingDuration",        appParms.fadingDuration);
    DomUtils.setValue("windowFunction",           appParms.windowFunctionId);
-   DomUtils.setValue("reference",                appParms.reference || ""); }
+   DomUtils.setValue("reference",                appParms.reference ?? ""); }
 
 function getUiParms() : AppParms {
    const appParms = <AppParms>{};
@@ -290,7 +289,7 @@ function inputParms_change() {
    signalSamples = undefined;
    refreshButtons(); }
 
-async function synthesizeButton_click() {
+function synthesizeButton_click() {
    audioPlayer.stop();
    synthesize();
    refreshButtons();
@@ -310,19 +309,16 @@ function wavFileButton_click() {
    if (!signalSamples) {
       synthesize(); }
    refreshUrl(true);
-   const buffer = Utils.createAudioBufferFromSamples(signalSamples!, signalSampleRate, audioContext);
-   const wavFileData = WavFileEncoder.encodeWavFile(buffer, WavFileEncoder.WavFileType.float32);
-   const blob = new Blob([wavFileData], {type: "audio/wav"});
+   const wavFileData = WavFileEncoder.encodeWavFile2([signalSamples!], signalSampleRate, WavFileEncoder.WavFileType.float32);
    const reference = DomUtils.getValue("reference");
    const fileName = "klattSyn" + (reference ? "-" + reference : "") + ".wav";
-   Utils.openSaveAsDialog(blob, fileName); }
+   Utils.openSaveAsDialog(wavFileData, fileName, "audio/wav", "wav", "WAV audio file"); }
 
 function resetButton_click() {
    restoreAppState("dummy=1"); }
 
 function initGuiMode() {
-   audioContext = new ((<any>window).AudioContext || (<any>window).webkitAudioContext)();
-   audioPlayer = new InternalAudioPlayer(audioContext);
+   audioPlayer = new InternalAudioPlayer();
    audioPlayer.addEventListener("stateChange", refreshButtons);
    const windowFunctionSelectElement = <HTMLSelectElement>document.getElementById("windowFunction")!;
    for (const d of WindowFunctions.windowFunctionIndex) {

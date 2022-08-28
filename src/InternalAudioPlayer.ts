@@ -1,20 +1,24 @@
-import * as Utils from "./Utils";
-import EventTargetPolyfill from "./EventTargetPolyfill";
+import {createAudioBufferFromSamples} from "./AudioUtils.js";
+import {nextTick} from "./Utils.js";
 
-export default class InternalAudioPlayer {
+export default class InternalAudioPlayer extends EventTarget {
 
    private audioContext:          AudioContext;
-   private activeAudioSourceNode: AudioBufferSourceNode | undefined;   // (TODO: change to AudioScheduledSourceNode when defined in TypeScript)
-   private eventTarget:           EventTarget;
+   private activeAudioSourceNode?: AudioScheduledSourceNode;
+   private initDone:               boolean;
 
-   public constructor (audioContext: AudioContext) {
-      this.audioContext = audioContext;
-      this.eventTarget = new EventTargetPolyfill(); }
+   public constructor() {
+      super();
+      this.initDone = false; }
 
-   public addEventListener (type: string, listener: EventListener) {
-      this.eventTarget.addEventListener(type, listener); }
+   private init() {
+      if (this.initDone) {
+         return; }
+      this.audioContext = new AudioContext();
+      this.initDone = true; }
 
    public async playAudioBuffer (buffer: AudioBuffer) {
+      this.init();
       this.disposeActiveAudioSource();
       await this.resumeAudioContext();
       const sourceNode = this.audioContext.createBufferSource();
@@ -26,7 +30,7 @@ export default class InternalAudioPlayer {
       this.fireEvent("stateChange"); }
 
    public async playSamples (samples: Float64Array, sampleRate: number) {
-      const buffer = Utils.createAudioBufferFromSamples(samples, sampleRate, this.audioContext);
+      const buffer = createAudioBufferFromSamples(samples, sampleRate);
       await this.playAudioBuffer(buffer); }
 
    public isPlaying() : boolean {
@@ -36,7 +40,7 @@ export default class InternalAudioPlayer {
       this.disposeActiveAudioSource(); }
 
    private audioEndedEventHandler = () => {
-      this.disposeActiveAudioSource(); }
+      this.disposeActiveAudioSource(); };
 
    private disposeActiveAudioSource() {
       if (!this.activeAudioSourceNode) {
@@ -54,6 +58,7 @@ export default class InternalAudioPlayer {
 
    private fireEvent (type: string) {
       const event = new CustomEvent(type);
-      this.eventTarget.dispatchEvent(event); }
+      nextTick(() => {                                     // call event listeners asynchronously
+         this.dispatchEvent(event); }); }
 
    }

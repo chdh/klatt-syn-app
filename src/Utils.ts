@@ -3,7 +3,38 @@ import * as Fft from "dsp-collection/signal/Fft";
 import * as DspUtils from "dsp-collection/utils/DspUtils";
 import ComplexArray from "dsp-collection/math/ComplexArray";
 
-export function openSaveAsDialog (blob: Blob, fileName: string) {
+const dummyResolvedPromise = Promise.resolve();
+
+export function nextTick (callback: () => void) {
+   void dummyResolvedPromise.then(callback); }
+
+export function openSaveAsDialog (data: ArrayBuffer, fileName: string, mimeType: string, fileNameExtension: string, fileTypeDescription: string) {
+   if ((<any>window).showSaveFilePicker) {
+      catchError(openSaveAsDialog_new, data, fileName, mimeType, fileNameExtension, fileTypeDescription); }
+    else {
+      openSaveAsDialog_old(data, fileName, mimeType); }}
+
+async function openSaveAsDialog_new (data: ArrayBuffer, fileName: string, mimeType: string, fileNameExtension: string, fileTypeDescription: string) {
+   const fileTypeDef: any = {};
+   fileTypeDef[mimeType] = ["." + fileNameExtension];
+   const pickerOpts = {
+      suggestedName: fileName,
+      types: [{
+         description: fileTypeDescription,
+         accept: fileTypeDef }]};
+   let fileHandle: FileSystemFileHandle;
+   try {
+      fileHandle = await (<any>window).showSaveFilePicker(pickerOpts); }
+    catch (e) {
+      if (e.name == "AbortError") {
+         return; }
+      throw e; }
+   const stream /* : FileSystemWritableFileStream */ = await (<any>fileHandle).createWritable();
+   await stream.write(data);
+   await stream.close(); }
+
+function openSaveAsDialog_old (data: ArrayBuffer, fileName: string, mimeType: string) {
+   const blob = new Blob([data], {type: mimeType});
    const url = URL.createObjectURL(blob);
    const element = document.createElement("a");
    element.href = url;
@@ -13,7 +44,10 @@ export function openSaveAsDialog (blob: Blob, fileName: string) {
    setTimeout(() => URL.revokeObjectURL(url), 60000);
    (<any>document).dummySaveAsElementHolder = element; }   // to prevent garbage collection
 
-export async function catchError (f: Function, ...args: any[]) {
+export function catchError (f: Function, ...args: any[]) {
+   void catchErrorAsync(f, ...args); }
+
+async function catchErrorAsync (f: Function, ...args: any[]) {
    try {
       const r = f(...args);
       if (r instanceof Promise) {

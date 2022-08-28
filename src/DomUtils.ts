@@ -7,8 +7,9 @@ export function showElement (elementId: string, visible = true) {
    if (!element) {
       return; }
    element.classList.toggle("hidden", !visible);
-   if ((<any>element).labels) {
-      for (const labelElement of (<any>element).labels) {
+   const labels = (<HTMLInputElement>element).labels;
+   if (labels) {
+      for (const labelElement of labels) {
          labelElement.classList.toggle("hidden", !visible); }}}
 
 export function getInputElement (elementId: string) : HTMLInputElement {
@@ -18,7 +19,7 @@ export function getInputElement (elementId: string) : HTMLInputElement {
    return e; }
 
 function getInputElementLabelText (e: HTMLInputElement) : string {
-   let s = (e.labels && e.labels.length > 0) ? e.labels[0].textContent || "" : "";
+   let s = (e.labels && e.labels.length > 0) ? e.labels[0].textContent ?? "" : "";
    if (s.length > 0 && s[s.length - 1] == ":") {
       s = s.substring(0, s.length - 1); }
    return s; }
