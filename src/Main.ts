@@ -349,7 +349,7 @@ function init() {
     else {
       initGuiMode(); }}
 
-async function startup() {
+function startup() {
    try {
       init(); }
     catch (e) {

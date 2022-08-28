@@ -107,7 +107,8 @@ div.actionButtons button {
    display: block;
    width: 1020px;
    margin-top: 8px;
-   border: 1px solid #888; }
+   border: 1px solid #888;
+   touch-action: none; }
 #signalViewer {
    height: 150px; }
 #spectrumViewer {

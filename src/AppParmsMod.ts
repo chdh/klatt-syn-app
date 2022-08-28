@@ -113,7 +113,7 @@ export function encodeUrlParms (appParms: AppParms) : string {
       usp.set("glottalSourceType", KlattSyn.glottalSourceTypeEnumNames[mParms.glottalSourceType]); }
 
    // Frame parameters:
-   const fParms = appParms.fParmsA[0];                      // temporary solution for a single frame
+   const fParms = appParms.fParmsA[0];                     // temporary solution for a single frame
    const fParms2 = defaultFrameParms;                      // default values
    UrlUtils.setNum(usp, "duration",        fParms.duration,       fParms2.duration);
    UrlUtils.setNum(usp, "f0",              fParms.f0);
