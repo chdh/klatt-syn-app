@@ -1,4 +1,4 @@
-import resolve from "rollup-plugin-node-resolve";
+import nodeResolve from "@rollup/plugin-node-resolve";
 
 export default {
    input: "tempBuild/Main.js",
@@ -7,6 +7,6 @@ export default {
       format: "iife"
    },
    plugins: [
-      resolve()
+      nodeResolve()
    ]
 };
