@@ -1,9 +1,10 @@
-import * as Utils from "./Utils";
-import * as DomUtils from "./DomUtils";
-import * as AppParmsMod from "./AppParmsMod";
-import {AppParms} from "./AppParmsMod";
-import InternalAudioPlayer from "./InternalAudioPlayer";
-import * as ApiModeMod from "./ApiModeMod";
+import * as Utils from "./Utils.ts";
+import * as AudioUtils from "./AudioUtils.ts";
+import * as DomUtils from "./DomUtils.ts";
+import * as AppParmsMod from "./AppParmsMod.ts";
+import {AppParms} from "./AppParmsMod.ts";
+import InternalAudioPlayer from "./InternalAudioPlayer.ts";
+import * as ApiModeMod from "./ApiModeMod.ts";
 import * as KlattSyn from "klatt-syn";
 import * as FunctionCurveViewer from "function-curve-viewer";
 import * as WavFileEncoder from "wav-file-encoder";
@@ -109,7 +110,7 @@ function synthesizeSignal (appParms: AppParms) {           // (this function is 
    signalSamples = KlattSyn.generateSound(appParms.mParms, appParms.fParmsA);
    signalSampleRate = appParms.mParms.sampleRate;
    signalSpectrum = Utils.genSpectrum(signalSamples, appParms.windowFunctionId);
-   Utils.fadeAudioSignalInPlace(signalSamples, appParms.fadingDuration * signalSampleRate, WindowFunctions.hannWindow); }
+   AudioUtils.fadeAudioSignalInPlace(signalSamples, appParms.fadingDuration * signalSampleRate); }
 
 function synthesize() {
    resetSignal();
@@ -237,7 +238,7 @@ function getUiParms() : AppParms {
 function recodeUrlParms_ignoreErr (urlParmsString: string) : string {
    try {
       return AppParmsMod.encodeUrlParms(AppParmsMod.decodeUrlParms(urlParmsString)); }
-     catch (e) {
+     catch (_e) {
        return ""; }}
 
 function refreshUrl (commit = false) {

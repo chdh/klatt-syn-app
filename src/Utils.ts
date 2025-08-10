@@ -56,20 +56,6 @@ async function catchErrorAsync (f: Function, ...args: any[]) {
       console.log(error);
       alert("Error: " + error); }}
 
-export function createAudioBufferFromSamples (samples: Float64Array, sampleRate: number, audioContext: AudioContext) : AudioBuffer {
-   const buffer = audioContext.createBuffer(1, samples.length, sampleRate);
-   const data = buffer.getChannelData(0);
-   for (let i = 0; i < samples.length; i++) {
-      data[i] = samples[i]; }
-   return buffer; }
-
-export function fadeAudioSignalInPlace (samples: Float64Array, fadeMargin: number, windowFunction: WindowFunctions.WindowFunction) {
-   const d = Math.min(samples.length, 2 * fadeMargin);
-   for (let i = 0; i < d / 2; i++) {
-      const w = windowFunction(i / d);
-      samples[i] *= w;
-      samples[samples.length - 1 - i] *= w; }}
-
 export function genSpectrum (samples: Float64Array, windowFunctionId: string) : Float64Array {
    const evenSamples = samples.subarray(0, 2 * Math.floor(samples.length / 2)); // make event length to enable optimization
    const windowedSamples = WindowFunctions.applyWindowById(evenSamples, windowFunctionId);

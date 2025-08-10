@@ -16,8 +16,7 @@ export function setBoolean (usp: URLSearchParams, parmName: string, parmValue: b
 export function get (usp: URLSearchParams, parmName: string, defaultValue: string) : string;
 export function get (usp: URLSearchParams, parmName: string, defaultValue?: string) : string | undefined;
 export function get (usp: URLSearchParams, parmName: string, defaultValue?: string) : string | undefined {
-   const s = usp.get(parmName);
-   return s ? s : defaultValue; }
+   return usp.get(parmName) ?? defaultValue; }
 
 export function getNum (usp: URLSearchParams, parmName: string, defaultValue = NaN) : number {
    const s = usp.get(parmName);

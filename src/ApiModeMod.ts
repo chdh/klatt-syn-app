@@ -1,5 +1,5 @@
-import * as AppParmsMod from "./AppParmsMod";
-import InternalAudioPlayer from "./InternalAudioPlayer";
+import * as AppParmsMod from "./AppParmsMod.ts";
+import InternalAudioPlayer from "./InternalAudioPlayer.ts";
 import * as KlattSyn from "klatt-syn";
 
 var delayedInitDone                    = false;

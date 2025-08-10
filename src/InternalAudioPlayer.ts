@@ -1,5 +1,5 @@
-import {createAudioBufferFromSamples} from "./AudioUtils.js";
-import {nextTick} from "./Utils.js";
+import {createAudioBufferFromSamples} from "./AudioUtils.ts";
+import {nextTick} from "./Utils.ts";
 
 export default class InternalAudioPlayer extends EventTarget {
 

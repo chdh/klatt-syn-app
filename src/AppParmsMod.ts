@@ -1,4 +1,4 @@
-import * as UrlUtils from "./UrlUtils";
+import * as UrlUtils from "./UrlUtils.ts";
 import * as KlattSyn from "klatt-syn";
 
 export interface AppParms {
@@ -144,7 +144,7 @@ export function decodeUrlParms (urlParmsString: string) : AppParms {
    const fParms2 = defaultFrameParms;                      // default values
    appParms.fParmsA = [fParms];                            // temporary solution for a single frame
    fParms.duration              = UrlUtils.getNum(usp, "duration",       fParms2.duration);
-   fParms.f0                    = UrlUtils.getNum(usp, "f0",             220);
+   fParms.f0                    = UrlUtils.getNum(usp, "f0",             fParms2.f0);
    fParms.flutterLevel          = UrlUtils.getNum(usp, "flutterLevel",   fParms2.flutterLevel);
    fParms.openPhaseRatio        = UrlUtils.getNum(usp, "openPhaseRatio", fParms2.openPhaseRatio);
    fParms.breathinessDb         = UrlUtils.getNum(usp, "breathinessDb",  fParms2.breathinessDb);
