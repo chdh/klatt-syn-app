@@ -64,7 +64,7 @@ select:focus, canvas:focus {
    display: flex;
    flex-wrap: wrap;
    align-items: baseline;
-   column-gap: 25px;
+   column-gap: 30px;
    row-gap: 8px; }
 .formantBlock1 {
    margin-top: 8px;
@@ -75,7 +75,7 @@ select:focus, canvas:focus {
    display: flex;
    flex-wrap: wrap;
    align-items: baseline;
-   column-gap: 25px;
+   column-gap: 30px;
    row-gap: 8px; }
 
 .parmField {
@@ -89,9 +89,9 @@ select:focus, canvas:focus {
 .w-lbl {
    width: 135px; }
 .w-inp {
-   width: 110px; }
+   width: 105px; }
 .formantBlock2 .w-lbl {
-   width: 55px; }
+   width: 50px; }
 .formantBlock2 .w-inp {
    width: 55px; }
 
@@ -134,18 +134,18 @@ div.parmHeading2 {
    font-weight: bold; }
 
 #reference {
-   width: 380px; }
+   width: 375px; }
 
 div.actionButtons {
    margin-top: 20px;
    display: flex;
    flex-wrap: wrap;
    align-items: center;
-   column-gap: 25px;
+   column-gap: 30px;
    row-gap: 10px; }
 
 div.actionButtons button {
-   width: 110px;
+   width: 105px;
    padding: 4px 0px; }
 
 
@@ -158,7 +158,7 @@ div.actionButtons button {
 #signalViewer,
 #spectrumViewer {
    display: block;
-   width: min(1055px, 100%);
+   width: min(1050px, 100%);
    margin-top: 8px;
    border: 1px solid #888;
    touch-action: none; }
