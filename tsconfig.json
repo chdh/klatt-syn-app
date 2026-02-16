@@ -3,9 +3,9 @@
       "allowUnreachableCode": false,
       "alwaysStrict": true,
       "forceConsistentCasingInFileNames": true,
-      "lib": ["ES2017", "DOM", "DOM.Iterable"],
+      "lib": ["ES2020", "DOM", "DOM.Iterable"],
       "module": "ES2020",
-      "moduleResolution": "Node",
+      "moduleResolution": "bundler",
       "noFallthroughCasesInSwitch": true,
       "noImplicitAny": true,
       "noImplicitOverride": true,
@@ -20,7 +20,5 @@
       "strictNullChecks": true,
       "target": "ES2020"
    },
-   "include": [
-      "src/**/*"
-   ]
+   "include": ["src"]
 }

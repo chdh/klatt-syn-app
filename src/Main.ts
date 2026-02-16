@@ -310,7 +310,7 @@ function wavFileButton_click() {
    if (!signalSamples) {
       synthesize(); }
    refreshUrl(true);
-   const wavFileData = WavFileEncoder.encodeWavFile2([signalSamples!], signalSampleRate, WavFileEncoder.WavFileType.float32);
+   const wavFileData = WavFileEncoder.encodeWavFileFromArrays([signalSamples!], signalSampleRate, WavFileEncoder.WavFileType.float32);
    const reference = DomUtils.getValue("reference");
    const fileName = "klattSyn" + (reference ? "-" + reference : "") + ".wav";
    Utils.openSaveAsDialog(wavFileData, fileName, "audio/wav", "wav", "WAV audio file"); }
@@ -335,6 +335,7 @@ function initGuiMode() {
    wavFileButtonElement.addEventListener("click", () => Utils.catchError(wavFileButton_click));
    resetButtonElement = <HTMLButtonElement>document.getElementById("resetButton")!;
    resetButtonElement.addEventListener("click", () => Utils.catchError(resetButton_click));
+   DomUtils.prepareFieldInfo();
    window.onpopstate = () => Utils.catchError(restoreAppStateFromUrl_withErrorHandling);
    restoreAppStateFromUrl_withErrorHandling();
    synthesize(); }
