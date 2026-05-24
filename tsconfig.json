@@ -16,8 +16,10 @@
       "outDir": "tempBuild",
       "removeComments": true,
       "rewriteRelativeImportExtensions": true,
+      "rootDir": "src",
       "strictFunctionTypes": true,
       "strictNullChecks": true,
+      "strictPropertyInitialization": false,
       "target": "ES2020"
    },
    "include": ["src"]
