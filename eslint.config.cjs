@@ -1,8 +1,8 @@
-const eslint      = require("@eslint/js");
-const tseslint    = require("typescript-eslint");
+const eslint     = require("@eslint/js");
+const tseslint   = require("typescript-eslint");
 const stylistic  = require("@stylistic/eslint-plugin");
-const globals     = require("globals");
-const checkFile   = require("eslint-plugin-check-file");
+const globals    = require("globals");
+const checkFile  = require("eslint-plugin-check-file");
 
 const namingOptions = [
    "error",
@@ -37,7 +37,7 @@ const rules = {
    "no-param-reassign": "error",
    "no-promise-executor-return": "warn",
    "no-restricted-syntax": ["error", {
-      selector: "AssignmentExpression[parent.type!='ExpressionStatement']",
+      selector: ":not(ExpressionStatement, ForStatement) > AssignmentExpression",
       message: "Do not nest assignments" }],
    "no-sequences": "error",
    "no-template-curly-in-string": "error",
@@ -49,8 +49,10 @@ const rules = {
 
    // Modifications of default rules:
    "no-constant-condition": ["error", {checkLoops: false }],
+   "no-var": "off",
+   "require-atomic-updates": "off",
 
-   // Additional Typescript plugin rules:
+   // Additional plugin rules:
    "@typescript-eslint/explicit-member-accessibility": "error",
    "@stylistic/member-delimiter-style": "error",
    "@typescript-eslint/naming-convention": namingOptions,
@@ -71,7 +73,7 @@ const rules = {
    "@stylistic/semi": "error",
    "@typescript-eslint/switch-exhaustiveness-check": ["error", {considerDefaultExhaustiveForUnions: true}],
 
-   // Modifications of default rules:
+   // Modifications of preset Typescript rules:
    "@typescript-eslint/consistent-type-assertions": "off",
    "@typescript-eslint/explicit-module-boundary-types": "off",
    "@typescript-eslint/no-explicit-any": "off",
@@ -85,7 +87,6 @@ const rules = {
    "@typescript-eslint/no-unsafe-member-access": "off",
    "@typescript-eslint/restrict-plus-operands": "off",
    "@typescript-eslint/restrict-template-expressions": "off",
-   "no-var": "off",                                     // @typescript-eslint/recommended switches this on
 
    // Check-file plugin rules:
    "check-file/filename-naming-convention": ["error", {"**/*.ts": "[A-Z]*"}],

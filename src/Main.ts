@@ -8,6 +8,7 @@ import * as ApiModeMod from "./ApiModeMod.ts";
 import * as KlattSyn from "klatt-syn";
 import * as FunctionCurveViewer from "function-curve-viewer";
 import * as WavFileEncoder from "wav-file-encoder";
+import * as DialogManager from "dialog-manager";
 import * as WindowFunctions from "dsp-collection/signal/WindowFunctions";
 import * as PolyReal from "dsp-collection/math/PolyReal";
 import MutableComplex from "dsp-collection/math/MutableComplex";
@@ -17,10 +18,6 @@ var audioPlayer:                       InternalAudioPlayer;
 var urlDirty:                          boolean = false;
 
 // GUI components:
-var synthesizeButtonElement:           HTMLButtonElement;
-var playButtonElement:                 HTMLButtonElement;
-var wavFileButtonElement:              HTMLButtonElement;
-var resetButtonElement:                HTMLButtonElement;
 var signalViewerCanvas:                HTMLCanvasElement;
 var signalViewerWidget:                FunctionCurveViewer.Widget | undefined;
 var spectrumViewerCanvas:              HTMLCanvasElement;
@@ -32,7 +29,7 @@ var signalSampleRate:                  number;
 var signalSpectrum:                    Float64Array | undefined;     // logarithmic amplitude spectrum
 var vocalTractSpectrumFunction:        (f: number) => number;
 
-//--- Signal -------------------------------------------------------------------
+//--- Signal and spectrum ------------------------------------------------------
 
 function clearCanvas (canvas: HTMLCanvasElement) {
    const ctx = canvas.getContext('2d')!;
@@ -273,10 +270,48 @@ function restoreAppStateFromUrl_withErrorHandling() {
       console.log(e);
       resetApplicationState(); }}
 
+//--- Copy to clipboard --------------------------------------------------------
+
+interface Point {x: number; y: number}
+
+function formatCoordinateValue (v: number, fracDigits: number) {
+   const v2 = Math.round(v * 1E6) / 1E6;
+   let s = String(v2);
+   if (s.length > 8) {
+      s = v.toFixed(fracDigits); }
+   return s; }
+
+function encodeCoordinateList (points: Point[], xFracDigits: number, yFracDigits: number) : string {
+   let s: string = "[";
+   for (let i = 0; i < points.length; i++) {
+      const point = points[i];
+      if (i > 0) {
+         s += ", "; }
+      s += "[" + formatCoordinateValue(point.x, xFracDigits) + ", " + formatCoordinateValue(point.y, yFracDigits) + "]"; }
+   s += "]";
+   return s; }
+
+function getTransferCurvePoints (stepWidth: number, maxFreq: number) : Point[] {
+   const points: Point[] = [];
+   for (let x = 0; x <= maxFreq; x += stepWidth) {
+      const y = vocalTractSpectrumFunction(x);
+      if (isFinite(y)) {
+         points.push({x, y}); }}
+   return points; }
+
+async function copyTransferCurveButton_click() {
+   if (!vocalTractSpectrumFunction) {
+      throw new Error("No data."); }
+   const stepWidth = DomUtils.getValueNum("copyTransferCurveStepWidth");
+   const points = getTransferCurvePoints(stepWidth, 5500);
+   const s = encodeCoordinateList(points, 1, 2);
+   await navigator.clipboard.writeText(s);
+   DialogManager.showToast({msgText: "Vocal tract transfer curve copied to clipboard."}); }
+
 //--- Main ---------------------------------------------------------------------
 
 function refreshButtons() {
-   playButtonElement.textContent = audioPlayer.isPlaying() ? "Stop" : "Play"; }
+   DomUtils.setText("playButton", audioPlayer.isPlaying() ? "Stop" : "Play"); }
 
 function resetApplicationState() {
    audioPlayer.stop();
@@ -327,14 +362,11 @@ function initGuiMode() {
    document.getElementById("inputParms")!.addEventListener("change", inputParms_change);
    signalViewerCanvas = <HTMLCanvasElement>document.getElementById("signalViewer")!;
    spectrumViewerCanvas = <HTMLCanvasElement>document.getElementById("spectrumViewer")!;
-   synthesizeButtonElement = <HTMLButtonElement>document.getElementById("synthesizeButton")!;
-   synthesizeButtonElement.addEventListener("click", () => Utils.catchError(synthesizeButton_click));
-   playButtonElement = <HTMLButtonElement>document.getElementById("playButton")!;
-   playButtonElement.addEventListener("click", () => Utils.catchError(playButton_click));
-   wavFileButtonElement = <HTMLButtonElement>document.getElementById("wavFileButton")!;
-   wavFileButtonElement.addEventListener("click", () => Utils.catchError(wavFileButton_click));
-   resetButtonElement = <HTMLButtonElement>document.getElementById("resetButton")!;
-   resetButtonElement.addEventListener("click", () => Utils.catchError(resetButton_click));
+   DomUtils.addClickEventListener("synthesizeButton", synthesizeButton_click);
+   DomUtils.addClickEventListener("playButton", playButton_click);
+   DomUtils.addClickEventListener("wavFileButton", wavFileButton_click);
+   DomUtils.addClickEventListener("resetButton", resetButton_click);
+   DomUtils.addClickEventListener("copyTransferCurveButton", copyTransferCurveButton_click);
    DomUtils.prepareFieldInfo();
    window.onpopstate = () => Utils.catchError(restoreAppStateFromUrl_withErrorHandling);
    restoreAppStateFromUrl_withErrorHandling();

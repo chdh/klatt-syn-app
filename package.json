@@ -1,7 +1,8 @@
 {
    "private": true,
    "dependencies": {
-      "dsp-collection": "^0.2.9",
+      "dialog-manager": "^1.0.3",
+      "dsp-collection": "^1.0.0",
       "function-curve-viewer": "^1.0.19",
       "klatt-syn": "^1.0.6",
       "wav-file-encoder": "^1.0.3"

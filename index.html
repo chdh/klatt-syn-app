@@ -265,9 +265,17 @@
  <div class="title">Signal</div>
  <canvas id="signalViewer" tabindex="-1"></canvas>
 </div>
+
 <div class="resultBlock">
  <div class="title">Spectrum</div>
  <canvas id="spectrumViewer" tabindex="-1"></canvas>
+ <div class="miniControlsBelowViewer">
+  <div id="copyTransferCurveButton" class="miniPseudoButton">Copy vocal tract transfer curve</div>
+  <div class="miniControlsField" data-info="Step width in Hz for the transfer curve x coordinate points that will be copied to the clipboard.">
+   <label for="copyTransferCurveStepWidth">Step width [Hz]:</label>
+   <input class="w2" id="copyTransferCurveStepWidth" type="number" step="any" value="50" required>
+  </div>
+ </div>
 </div>
 
 <div class="footer">

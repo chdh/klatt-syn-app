@@ -1,5 +1,15 @@
 // Browser DOM utilities.
 
+import {catchError} from "./Utils.ts";
+
+export function getElement (elementOrId: HTMLElement | string) : HTMLElement {
+   if (typeof elementOrId != "string") {
+      return elementOrId; }
+   const e = <HTMLElement>document.getElementById(elementOrId);
+   if (!e) {
+      throw new Error("No HTML element found with ID \"" + elementOrId + "\"."); }
+   return e; }
+
 // Shows or hides a DOM element.
 // If the element is a form control with associated label elements, the label elements are also affected.
 export function showElement (elementId: string, visible = true) {
@@ -38,6 +48,9 @@ export function getValue (elementId: string) : string {
 export function setValue (elementId: string, newValue: string) {
    getInputElement(elementId).value = newValue; }
 
+export function setText (elementOrId: HTMLElement | string, text: string) {
+   getElement(elementOrId).textContent = text; }
+
 export function getValueNum (elementId: string, defaultValue: number = NaN) : number {
    const e = getInputElement(elementId);
    checkValidity(e);
@@ -63,6 +76,16 @@ export function setClass (elementId: string, className: string, enable = true) {
    if (!e) {
       return; }
    e.classList.toggle(className, enable); }
+
+export function addEventListener (elementOrId: HTMLElement | string, eventType: string, listener: Function, ...args: any[]) {
+   const e = getElement(elementOrId);
+   e.addEventListener(eventType, (event: Event) => void catchError(listener, event, ...args)); }
+
+export function addChangeEventListener (elementOrId: HTMLElement | string, listener: Function, ...args: any[]) {
+   addEventListener(elementOrId, "change", listener, ...args); }
+
+export function addClickEventListener (elementOrId: HTMLElement | string, listener: Function, ...args: any[]) {
+   addEventListener(elementOrId, "click", listener, ...args); }
 
 //--- Field info ---------------------------------------------------------------
 
